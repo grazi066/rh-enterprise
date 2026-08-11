@@ -1,26 +1,199 @@
 @import "tailwindcss";
+@import "tw-animate-css";
+@import "shadcn/tailwind.css";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
-}
+@custom-variant dark (&:is(.dark *));
 
+/*
+ * Design tokens — RH Enterprise
+ * Primary accent: Indigo/Violet. Neutral surfaces: Slate. Status badges: green/amber/blue.
+ * See CLAUDE.md "Design System" section before adding new colors.
+ */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
+
+  /* Geist is injected at runtime via next/font on <html>; @theme inline resolves at
+     parse time, so we reference the literal font stack instead of var(--font-geist-sans)
+     to avoid a circular/empty font-family (known shadcn init + Tailwind v4 issue). */
+  --font-sans: "Geist", "Geist Fallback", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Geist Mono", "Geist Mono Fallback", ui-monospace, monospace;
+  --font-heading: var(--font-sans);
+
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-destructive-foreground: var(--destructive-foreground);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+
+  /* Status semantics — used by Badge status variants and any status-driven UI
+     (chips, dots, progress). Verde=Ativo/Aprovado, Âmbar=Em Férias, Azul=Pendente,
+     Laranja=Afastado (distinto do âmbar de Férias). */
+  --color-success: var(--success);
+  --color-success-foreground: var(--success-foreground);
+  --color-warning: var(--warning);
+  --color-warning-foreground: var(--warning-foreground);
+  --color-info: var(--info);
+  --color-info-foreground: var(--info-foreground);
+  --color-away: var(--away);
+  --color-away-foreground: var(--away-foreground);
+
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
+:root {
+  /* Surfaces: soft Slate, not stark white/black */
+  --background: oklch(0.984 0.003 247.858); /* slate-50 */
+  --foreground: oklch(0.208 0.042 265.755); /* slate-900 */
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.208 0.042 265.755);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.208 0.042 265.755);
+
+  /* Brand: Indigo primary */
+  --primary: oklch(0.511 0.262 276.966); /* indigo-600 */
+  --primary-foreground: oklch(0.984 0.003 247.858);
+
+  --secondary: oklch(0.968 0.007 247.896); /* slate-100 */
+  --secondary-foreground: oklch(0.279 0.041 260.031); /* slate-800 */
+
+  --muted: oklch(0.968 0.007 247.896); /* slate-100 */
+  --muted-foreground: oklch(0.554 0.046 257.417); /* slate-500 */
+
+  /* Accent: Violet, distinct from primary Indigo, for hover/active surfaces */
+  --accent: oklch(0.943 0.029 294.588); /* violet-100 */
+  --accent-foreground: oklch(0.38 0.189 293.745); /* violet-900 */
+
+  --destructive: oklch(0.577 0.245 27.325);
+  --destructive-foreground: oklch(0.984 0.003 247.858);
+
+  --border: oklch(0.929 0.013 255.508); /* slate-200 */
+  --input: oklch(0.929 0.013 255.508); /* slate-200 */
+  --ring: oklch(0.585 0.233 277.117); /* indigo-500 */
+
+  --chart-1: oklch(0.511 0.262 276.966); /* indigo-600 */
+  --chart-2: oklch(0.541 0.281 293.009); /* violet-600 */
+  --chart-3: oklch(0.546 0.245 262.881); /* blue-600 */
+  --chart-4: oklch(0.627 0.194 149.214); /* green-600 */
+  --chart-5: oklch(0.666 0.179 58.318); /* amber-600 */
+
+  --radius: 0.625rem;
+
+  /* Sidebar: deep Slate shell with Indigo accent — enterprise "dark rail" look
+     even in light mode, matching many corporate admin consoles */
+  --sidebar: oklch(0.208 0.042 265.755); /* slate-900 */
+  --sidebar-foreground: oklch(0.968 0.007 247.896); /* slate-100 */
+  --sidebar-primary: oklch(0.585 0.233 277.117); /* indigo-500 */
+  --sidebar-primary-foreground: oklch(1 0 0);
+  --sidebar-accent: oklch(0.279 0.041 260.031); /* slate-800 */
+  --sidebar-accent-foreground: oklch(0.968 0.007 247.896);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.585 0.233 277.117);
+
+  /* Status badges */
+  --success: oklch(0.627 0.194 149.214); /* green-600 — Ativo / Aprovado */
+  --success-foreground: oklch(1 0 0);
+  --warning: oklch(0.666 0.179 58.318); /* amber-600 — Em Férias */
+  --warning-foreground: oklch(1 0 0);
+  --info: oklch(0.546 0.245 262.881); /* blue-600 — Pendente */
+  --info-foreground: oklch(1 0 0);
+  --away: oklch(0.646 0.222 41.116); /* orange-600 — Afastado */
+  --away-foreground: oklch(1 0 0);
+}
+
+.dark {
+  --background: oklch(0.129 0.042 264.695); /* slate-950 */
+  --foreground: oklch(0.968 0.007 247.896); /* slate-100 */
+  --card: oklch(0.208 0.042 265.755); /* slate-900 */
+  --card-foreground: oklch(0.968 0.007 247.896);
+  --popover: oklch(0.208 0.042 265.755);
+  --popover-foreground: oklch(0.968 0.007 247.896);
+
+  --primary: oklch(0.673 0.182 276.935); /* indigo-400 — brighter for dark surfaces */
+  --primary-foreground: oklch(0.129 0.042 264.695);
+
+  --secondary: oklch(0.279 0.041 260.031); /* slate-800 */
+  --secondary-foreground: oklch(0.968 0.007 247.896);
+
+  --muted: oklch(0.279 0.041 260.031); /* slate-800 */
+  --muted-foreground: oklch(0.704 0.04 256.788); /* slate-400 */
+
+  --accent: oklch(0.38 0.189 293.745); /* violet-900 */
+  --accent-foreground: oklch(0.894 0.057 293.283); /* violet-200 */
+
+  --destructive: oklch(0.704 0.191 22.216);
+  --destructive-foreground: oklch(0.129 0.042 264.695);
+
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 15%);
+  --ring: oklch(0.673 0.182 276.935); /* indigo-400 */
+
+  --chart-1: oklch(0.673 0.182 276.935); /* indigo-400 */
+  --chart-2: oklch(0.702 0.183 293.541); /* violet-400 */
+  --chart-3: oklch(0.623 0.214 259.815); /* blue-500 */
+  --chart-4: oklch(0.723 0.219 149.579); /* green-500 */
+  --chart-5: oklch(0.769 0.188 70.08); /* amber-500 */
+
+  --sidebar: oklch(0.1 0.03 264.695); /* near-black slate, deeper than page bg */
+  --sidebar-foreground: oklch(0.968 0.007 247.896);
+  --sidebar-primary: oklch(0.673 0.182 276.935);
+  --sidebar-primary-foreground: oklch(0.129 0.042 264.695);
+  --sidebar-accent: oklch(0.279 0.041 260.031);
+  --sidebar-accent-foreground: oklch(0.968 0.007 247.896);
+  --sidebar-border: oklch(1 0 0 / 8%);
+  --sidebar-ring: oklch(0.673 0.182 276.935);
+
+  --success: oklch(0.723 0.219 149.579); /* green-500 */
+  --success-foreground: oklch(0.129 0.042 264.695);
+  --warning: oklch(0.769 0.188 70.08); /* amber-500 */
+  --warning-foreground: oklch(0.129 0.042 264.695);
+  --info: oklch(0.623 0.214 259.815); /* blue-500 */
+  --info-foreground: oklch(0.129 0.042 264.695);
+  --away: oklch(0.705 0.213 47.604); /* orange-500 */
+  --away-foreground: oklch(0.129 0.042 264.695);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
   }
-}
-
-body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  body {
+    @apply bg-background text-foreground;
+  }
+  html {
+    @apply font-sans;
+  }
 }

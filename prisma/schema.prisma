@@ -1,0 +1,203 @@
+// Prisma schema — RH Enterprise
+// Docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider     = "prisma-client"
+  output       = "../src/generated/prisma"
+  moduleFormat = "cjs"
+}
+
+datasource db {
+  provider = "postgresql"
+  // Tables for this app live in their own Postgres schema ("rh") so they
+  // never touch the "public" schema, which already hosts an unrelated
+  // e-commerce/financial dataset in this shared Neon database.
+  schemas  = ["rh"]
+}
+
+enum StatusFuncionario {
+  ATIVO
+  FERIAS
+  AFASTADO
+  DESLIGADO
+
+  @@map("status_funcionario")
+  @@schema("rh")
+}
+
+enum StatusFerias {
+  AGENDADA
+  EM_ANDAMENTO
+  CONCLUIDA
+  CANCELADA
+
+  @@map("status_ferias")
+  @@schema("rh")
+}
+
+enum StatusFolha {
+  PENDENTE
+  PROCESSANDO
+  PAGO
+
+  @@map("status_folha")
+  @@schema("rh")
+}
+
+enum StatusItemFolha {
+  PENDENTE
+  PAGO
+
+  @@map("status_item_folha")
+  @@schema("rh")
+}
+
+enum TipoBeneficio {
+  SAUDE
+  ODONTOLOGICO
+  VALE_REFEICAO
+  VALE_TRANSPORTE
+  PREVIDENCIA_PRIVADA
+  SEGURO_DE_VIDA
+  GYMPASS
+  VALE_CULTURA
+
+  @@map("tipo_beneficio")
+  @@schema("rh")
+}
+
+model Cargo {
+  id           String   @id @default(cuid())
+  nome         String
+  departamento String
+  salarioBase  Decimal  @map("salario_base") @db.Decimal(10, 2)
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  funcionarios Funcionario[]
+
+  @@map("cargos")
+  @@schema("rh")
+}
+
+model Beneficio {
+  id          String        @id @default(cuid())
+  nome        String
+  tipo        TipoBeneficio
+  valorPadrao Decimal       @map("valor_padrao") @db.Decimal(10, 2)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  funcionarios FuncionarioBeneficio[]
+
+  @@map("beneficios")
+  @@schema("rh")
+}
+
+model Funcionario {
+  id           String            @id @default(cuid())
+  nome         String
+  email        String            @unique
+  cpf          String            @unique
+  dataAdmissao DateTime          @map("data_admissao")
+  status       StatusFuncionario @default(ATIVO)
+  cargoId      String            @map("cargo_id")
+  salarioAtual Decimal           @map("salario_atual") @db.Decimal(10, 2)
+  createdAt    DateTime          @default(now()) @map("created_at")
+  updatedAt    DateTime          @updatedAt @map("updated_at")
+
+  cargo             Cargo                  @relation(fields: [cargoId], references: [id])
+  beneficios        FuncionarioBeneficio[]
+  historicoSalarios HistoricoSalario[]
+  ferias            Ferias[]
+  itensFolha        ItemFolha[]
+
+  @@index([cargoId])
+  @@index([status])
+  @@map("funcionarios")
+  @@schema("rh")
+}
+
+// Tabela de junção Funcionario <-> Beneficio, com valor customizado por adesão.
+model FuncionarioBeneficio {
+  funcionarioId    String   @map("funcionario_id")
+  beneficioId      String   @map("beneficio_id")
+  valorCustomizado Decimal? @map("valor_customizado") @db.Decimal(10, 2)
+  dataAdesao       DateTime @default(now()) @map("data_adesao")
+
+  funcionario Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+  beneficio   Beneficio   @relation(fields: [beneficioId], references: [id], onDelete: Cascade)
+
+  @@id([funcionarioId, beneficioId])
+  @@index([beneficioId])
+  @@map("funcionario_beneficios")
+  @@schema("rh")
+}
+
+model HistoricoSalario {
+  id            String   @id @default(cuid())
+  funcionarioId String   @map("funcionario_id")
+  valor         Decimal  @db.Decimal(10, 2)
+  motivo        String
+  dataAlteracao DateTime @default(now()) @map("data_alteracao")
+
+  funcionario Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+
+  @@index([funcionarioId])
+  @@map("historico_salarios")
+  @@schema("rh")
+}
+
+model Ferias {
+  id            String       @id @default(cuid())
+  funcionarioId String       @map("funcionario_id")
+  dataInicio    DateTime     @map("data_inicio")
+  dataFim       DateTime     @map("data_fim")
+  dias          Int
+  status        StatusFerias @default(AGENDADA)
+  createdAt     DateTime     @default(now()) @map("created_at")
+  updatedAt     DateTime     @updatedAt @map("updated_at")
+
+  funcionario Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+
+  @@index([funcionarioId])
+  @@map("ferias")
+  @@schema("rh")
+}
+
+model FolhaPagamento {
+  id            String      @id @default(cuid())
+  mes           Int
+  ano           Int
+  status        StatusFolha @default(PENDENTE)
+  valorTotal    Decimal     @map("valor_total") @db.Decimal(12, 2)
+  dataPagamento DateTime?   @map("data_pagamento")
+  createdAt     DateTime    @default(now()) @map("created_at")
+
+  itens ItemFolha[]
+
+  @@unique([mes, ano])
+  @@map("folhas_pagamento")
+  @@schema("rh")
+}
+
+// Um contracheque por colaborador dentro de uma FolhaPagamento.
+model ItemFolha {
+  id            String          @id @default(cuid())
+  folhaId       String          @map("folha_id")
+  funcionarioId String          @map("funcionario_id")
+  salarioBruto  Decimal         @map("salario_bruto") @db.Decimal(10, 2)
+  descontos     Decimal         @default(0) @db.Decimal(10, 2)
+  valorLiquido  Decimal         @map("valor_liquido") @db.Decimal(10, 2)
+  status        StatusItemFolha @default(PENDENTE)
+  dataPagamento DateTime?       @map("data_pagamento")
+  observacao    String?
+
+  folha       FolhaPagamento @relation(fields: [folhaId], references: [id], onDelete: Cascade)
+  funcionario Funcionario    @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+
+  @@unique([folhaId, funcionarioId])
+  @@index([funcionarioId])
+  @@map("itens_folha")
+  @@schema("rh")
+}

@@ -36,6 +36,13 @@ yarn-error.log*
 # vercel
 .vercel
 
+# skill docs cache (AI coding agents) — not part of the application
+/.agents/
+/.claude/
+/.windsurf/
+
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+/src/generated/prisma
