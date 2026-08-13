@@ -75,6 +75,25 @@ enum Role {
   @@schema("rh")
 }
 
+enum TipoSolicitacao {
+  FERIAS
+  REEMBOLSO
+  HOME_OFFICE
+  ADVERTENCIA
+
+  @@map("tipo_solicitacao")
+  @@schema("rh")
+}
+
+enum StatusSolicitacao {
+  PENDENTE
+  APROVADO
+  REPROVADO
+
+  @@map("status_solicitacao")
+  @@schema("rh")
+}
+
 model Cargo {
   id           String   @id @default(cuid())
   nome         String
@@ -121,6 +140,7 @@ model Funcionario {
   historicoSalarios HistoricoSalario[]
   ferias            Ferias[]
   itensFolha        ItemFolha[]
+  solicitacoes      Solicitacao[]
 
   @@index([cargoId])
   @@index([status])
@@ -172,6 +192,24 @@ model Ferias {
 
   @@index([funcionarioId])
   @@map("ferias")
+  @@schema("rh")
+}
+
+// Solicitações revisadas em /aprovacoes (Férias, Reembolso, Home Office,
+// Advertência) — aprovar/rejeitar só é permitido enquanto PENDENTE.
+model Solicitacao {
+  id            String            @id @default(cuid())
+  funcionarioId String            @map("funcionario_id")
+  tipo          TipoSolicitacao
+  status        StatusSolicitacao @default(PENDENTE)
+  createdAt     DateTime          @default(now()) @map("created_at")
+  updatedAt     DateTime          @updatedAt @map("updated_at")
+
+  funcionario Funcionario @relation(fields: [funcionarioId], references: [id], onDelete: Cascade)
+
+  @@index([funcionarioId])
+  @@index([status])
+  @@map("solicitacoes")
   @@schema("rh")
 }
 

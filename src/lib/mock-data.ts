@@ -1,4 +1,4 @@
-import type { ApprovalRequest, Employee } from "@/types/hr"
+import type { Employee } from "@/types/hr"
 
 // Sessão fictícia — sem autenticação real ainda. Ver CLAUDE.md.
 export const currentUser = {
@@ -53,36 +53,5 @@ export const employees: Employee[] = [
     status: "ativo",
     email: "mariana.costa@rh-enterprise.com",
     admissionDate: "2020-05-22",
-  },
-]
-
-export const approvalRequests: ApprovalRequest[] = [
-  {
-    id: "a1",
-    employeeName: "Carlos Eduardo Lima",
-    type: "Férias",
-    requestedAt: "2026-08-01",
-    status: "aprovado",
-  },
-  {
-    id: "a2",
-    employeeName: "Mariana Costa",
-    type: "Home Office",
-    requestedAt: "2026-08-05",
-    status: "pendente",
-  },
-  {
-    id: "a3",
-    employeeName: "João Pedro Alves",
-    type: "Reembolso",
-    requestedAt: "2026-08-07",
-    status: "pendente",
-  },
-  {
-    id: "a4",
-    employeeName: "Fernanda Ribeiro",
-    type: "Advertência",
-    requestedAt: "2026-07-29",
-    status: "reprovado",
   },
 ]

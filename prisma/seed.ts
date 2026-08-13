@@ -29,6 +29,7 @@ const TAXA_DESCONTO_ILUSTRATIVA = 0.11;
 
 async function main() {
   console.log("Limpando tabelas do schema rh...");
+  await prisma.solicitacao.deleteMany();
   await prisma.itemFolha.deleteMany();
   await prisma.folhaPagamento.deleteMany();
   await prisma.ferias.deleteMany();
@@ -258,6 +259,35 @@ async function main() {
   ];
   await prisma.ferias.createMany({ data: feriasData });
 
+  console.log("Criando solicitações (cobrindo PENDENTE, APROVADO e REPROVADO)...");
+  const solicitacoesData: Prisma.SolicitacaoCreateManyInput[] = [
+    {
+      funcionarioId: funcionarioPorEmail["carlos.lima@rh-enterprise.com"].id,
+      tipo: "FERIAS",
+      status: "APROVADO",
+      createdAt: new Date("2026-08-01"),
+    },
+    {
+      funcionarioId: funcionarioPorEmail["mariana.costa@rh-enterprise.com"].id,
+      tipo: "HOME_OFFICE",
+      status: "PENDENTE",
+      createdAt: new Date("2026-08-05"),
+    },
+    {
+      funcionarioId: funcionarioPorEmail["joao.alves@rh-enterprise.com"].id,
+      tipo: "REEMBOLSO",
+      status: "PENDENTE",
+      createdAt: new Date("2026-08-07"),
+    },
+    {
+      funcionarioId: funcionarioPorEmail["fernanda.ribeiro@rh-enterprise.com"].id,
+      tipo: "ADVERTENCIA",
+      status: "REPROVADO",
+      createdAt: new Date("2026-07-29"),
+    },
+  ];
+  await prisma.solicitacao.createMany({ data: solicitacoesData });
+
   console.log("Gerando folha de pagamento de 07/2026 (já totalmente paga)...");
   const funcionariosAtivos = funcionarios.filter((f) => f.status !== "DESLIGADO");
   const itensFolhaData = funcionariosAtivos.map((f) => {
@@ -315,6 +345,7 @@ async function main() {
   console.log(`  ${associacoes.length} associações de benefícios`);
   console.log(`  ${historico.length} registros de histórico salarial`);
   console.log(`  ${feriasData.length} períodos de férias`);
+  console.log(`  ${solicitacoesData.length} solicitações`);
   console.log(`  1 folha de pagamento (07/2026) com ${itensFolhaData.length} itens`);
 }
 

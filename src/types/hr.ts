@@ -10,11 +10,3 @@ export interface Employee {
   email: string
   admissionDate: string
 }
-
-export interface ApprovalRequest {
-  id: string
-  employeeName: string
-  type: "Férias" | "Reembolso" | "Home Office" | "Advertência"
-  requestedAt: string
-  status: AppStatus
-}

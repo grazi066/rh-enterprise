@@ -15,19 +15,27 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { StatusBadge } from "@/components/status-badge"
-import { approvalRequests, employees } from "@/lib/mock-data"
+import { employees } from "@/lib/mock-data"
 import { prisma } from "@/lib/prisma"
 import { reconcileAllFuncionarioStatusFerias } from "@/lib/sync-funcionario-ferias-status"
+import { STATUS_SOLICITACAO_TO_APPROVAL_STATUS, TIPO_SOLICITACAO_LABEL } from "@/lib/status-labels"
 
 export default async function DashboardPage() {
-  // "Colaboradores ativos" e "Em férias" já vêm do Prisma (Funcionario.status
-  // real); "Aprovações pendentes" e "Departamentos" ainda são mock-data — ver
-  // CLAUDE.md sobre o estado misto desta página.
+  // "Colaboradores ativos", "Em férias" e "Aprovações pendentes" já vêm do
+  // Prisma; "Departamentos" ainda é mock-data (não há um cadastro de
+  // departamentos separado do texto livre em Cargo.departamento).
   await reconcileAllFuncionarioStatusFerias()
-  const [colaboradoresAtivos, colaboradoresEmFerias] = await Promise.all([
-    prisma.funcionario.count({ where: { status: "ATIVO" } }),
-    prisma.funcionario.count({ where: { status: "FERIAS" } }),
-  ])
+  const [colaboradoresAtivos, colaboradoresEmFerias, aprovacoesPendentes, solicitacoesRecentes] =
+    await Promise.all([
+      prisma.funcionario.count({ where: { status: "ATIVO" } }),
+      prisma.funcionario.count({ where: { status: "FERIAS" } }),
+      prisma.solicitacao.count({ where: { status: "PENDENTE" } }),
+      prisma.solicitacao.findMany({
+        orderBy: { createdAt: "desc" },
+        take: 5,
+        include: { funcionario: { select: { nome: true } } },
+      }),
+    ])
 
   const kpis = [
     {
@@ -42,7 +50,7 @@ export default async function DashboardPage() {
     },
     {
       label: "Aprovações pendentes",
-      value: approvalRequests.filter((r) => r.status === "pendente").length,
+      value: aprovacoesPendentes,
       icon: ClipboardCheck,
     },
     {
@@ -96,22 +104,33 @@ export default async function DashboardPage() {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {approvalRequests.map((request) => (
-                <TableRow key={request.id}>
-                  <TableCell className="font-medium">
-                    {request.employeeName}
-                  </TableCell>
-                  <TableCell>{request.type}</TableCell>
-                  <TableCell className="text-muted-foreground">
-                    {new Date(request.requestedAt).toLocaleDateString(
-                      "pt-BR"
-                    )}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <StatusBadge status={request.status} />
+              {solicitacoesRecentes.length === 0 ? (
+                <TableRow>
+                  <TableCell
+                    colSpan={4}
+                    className="h-24 text-center text-sm text-muted-foreground"
+                  >
+                    Nenhuma solicitação registrada ainda.
                   </TableCell>
                 </TableRow>
-              ))}
+              ) : (
+                solicitacoesRecentes.map((solicitacao) => (
+                  <TableRow key={solicitacao.id}>
+                    <TableCell className="font-medium">
+                      {solicitacao.funcionario.nome}
+                    </TableCell>
+                    <TableCell>{TIPO_SOLICITACAO_LABEL[solicitacao.tipo]}</TableCell>
+                    <TableCell className="text-muted-foreground">
+                      {solicitacao.createdAt.toLocaleDateString("pt-BR")}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <StatusBadge
+                        status={STATUS_SOLICITACAO_TO_APPROVAL_STATUS[solicitacao.status]}
+                      />
+                    </TableCell>
+                  </TableRow>
+                ))
+              )}
             </TableBody>
           </Table>
         </CardContent>

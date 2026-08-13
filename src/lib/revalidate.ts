@@ -10,5 +10,6 @@ export function revalidateAppPaths() {
   revalidatePath("/filtros")
   revalidatePath("/auditoria")
   revalidatePath("/ferias")
+  revalidatePath("/aprovacoes")
   revalidatePath("/")
 }
