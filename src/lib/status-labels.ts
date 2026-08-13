@@ -11,8 +11,8 @@ export const STATUS_FUNCIONARIO_LABEL: Record<StatusFuncionario, string> = {
 export const TIPO_SOLICITACAO_LABEL: Record<TipoSolicitacao, string> = {
   FERIAS: "Férias",
   REEMBOLSO: "Reembolso",
-  HOME_OFFICE: "Home Office",
-  ADVERTENCIA: "Advertência",
+  AJUSTE_SALARIAL: "Ajuste Salarial",
+  ALTERACAO_CARGO: "Alteração de Cargo",
 }
 
 export const STATUS_SOLICITACAO_TO_APPROVAL_STATUS: Record<StatusSolicitacao, ApprovalStatus> = {

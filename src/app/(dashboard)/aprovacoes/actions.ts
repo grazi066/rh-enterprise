@@ -1,13 +1,79 @@
 "use server"
 
 import { prisma } from "@/lib/prisma"
-import { StatusSolicitacao } from "@/generated/prisma/client"
+import { StatusSolicitacao, TipoSolicitacao } from "@/generated/prisma/client"
 import { registrarAuditLog } from "@/lib/audit"
 import { revalidateAppPaths } from "@/lib/revalidate"
 
 export interface ActionResult {
   success: boolean
   message: string
+}
+
+function readText(formData: FormData, field: string) {
+  const value = formData.get(field)
+  return typeof value === "string" ? value.trim() : ""
+}
+
+function isTipoSolicitacao(value: string): value is TipoSolicitacao {
+  return Object.values(TipoSolicitacao).includes(value as TipoSolicitacao)
+}
+
+export async function criarSolicitacao(
+  _prevState: ActionResult,
+  formData: FormData
+): Promise<ActionResult> {
+  const funcionarioId = readText(formData, "funcionarioId")
+  const tipo = readText(formData, "tipo")
+  const justificativa = readText(formData, "justificativa")
+
+  if (!funcionarioId) {
+    return { success: false, message: "Selecione o colaborador." }
+  }
+  if (!isTipoSolicitacao(tipo)) {
+    return { success: false, message: "Selecione o tipo de solicitação." }
+  }
+  if (justificativa.length < 5) {
+    return {
+      success: false,
+      message: "Informe uma justificativa com pelo menos 5 caracteres.",
+    }
+  }
+
+  try {
+    const funcionario = await prisma.funcionario.findUnique({
+      where: { id: funcionarioId },
+      select: { nome: true },
+    })
+    if (!funcionario) {
+      return { success: false, message: "Colaborador não encontrado." }
+    }
+
+    const solicitacao = await prisma.solicitacao.create({
+      data: {
+        funcionarioId,
+        tipo,
+        justificativa,
+        status: StatusSolicitacao.PENDENTE,
+      },
+    })
+
+    await registrarAuditLog({
+      acao: "CRIACAO_SOLICITACAO",
+      entidade: "Solicitacao",
+      entidadeId: solicitacao.id,
+      detalhes: JSON.stringify({
+        funcionario: funcionario.nome,
+        tipo,
+        justificativa,
+      }),
+    })
+
+    revalidateAppPaths()
+    return { success: true, message: `Solicitação de ${funcionario.nome} registrada.` }
+  } catch {
+    return { success: false, message: "Erro ao registrar a solicitação." }
+  }
 }
 
 async function revisarSolicitacao(

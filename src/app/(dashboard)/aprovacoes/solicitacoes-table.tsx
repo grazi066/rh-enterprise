@@ -13,6 +13,7 @@ import {
   TableRow,
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { StatusBadge } from "@/components/status-badge"
 import { TIPO_SOLICITACAO_LABEL } from "@/lib/status-labels"
 import { aprovarSolicitacao, rejeitarSolicitacao } from "./actions"
@@ -56,6 +57,7 @@ export function SolicitacoesTable({
         <TableRow>
           <TableHead>Colaborador</TableHead>
           <TableHead>Tipo</TableHead>
+          <TableHead>Justificativa</TableHead>
           <TableHead>Data</TableHead>
           <TableHead>Status</TableHead>
           <TableHead className="text-right">Ações</TableHead>
@@ -65,7 +67,7 @@ export function SolicitacoesTable({
         {solicitacoes.length === 0 ? (
           <TableRow>
             <TableCell
-              colSpan={5}
+              colSpan={6}
               className="h-24 text-center text-sm text-muted-foreground"
             >
               Nenhuma solicitação registrada ainda.
@@ -81,6 +83,24 @@ export function SolicitacoesTable({
                   {solicitacao.funcionario.nome}
                 </TableCell>
                 <TableCell>{TIPO_SOLICITACAO_LABEL[solicitacao.tipo]}</TableCell>
+                <TableCell className="max-w-xs">
+                  {solicitacao.justificativa ? (
+                    <Tooltip>
+                      <TooltipTrigger
+                        render={
+                          <span className="block truncate text-muted-foreground">
+                            {solicitacao.justificativa}
+                          </span>
+                        }
+                      />
+                      <TooltipContent className="max-w-sm whitespace-pre-wrap text-xs">
+                        {solicitacao.justificativa}
+                      </TooltipContent>
+                    </Tooltip>
+                  ) : (
+                    <span className="text-muted-foreground">—</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-muted-foreground">
                   {dateFormatter.format(new Date(solicitacao.createdAt))}
                 </TableCell>

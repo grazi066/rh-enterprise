@@ -78,8 +78,8 @@ enum Role {
 enum TipoSolicitacao {
   FERIAS
   REEMBOLSO
-  HOME_OFFICE
-  ADVERTENCIA
+  AJUSTE_SALARIAL
+  ALTERACAO_CARGO
 
   @@map("tipo_solicitacao")
   @@schema("rh")
@@ -195,13 +195,15 @@ model Ferias {
   @@schema("rh")
 }
 
-// Solicitações revisadas em /aprovacoes (Férias, Reembolso, Home Office,
-// Advertência) — aprovar/rejeitar só é permitido enquanto PENDENTE.
+// Solicitações criadas e revisadas em /aprovacoes (Férias, Reembolso, Ajuste
+// Salarial, Alteração de Cargo) — aprovar/rejeitar só é permitido enquanto
+// PENDENTE.
 model Solicitacao {
   id            String            @id @default(cuid())
   funcionarioId String            @map("funcionario_id")
   tipo          TipoSolicitacao
   status        StatusSolicitacao @default(PENDENTE)
+  justificativa String?
   createdAt     DateTime          @default(now()) @map("created_at")
   updatedAt     DateTime          @updatedAt @map("updated_at")
 
