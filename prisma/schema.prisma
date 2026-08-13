@@ -66,6 +66,15 @@ enum TipoBeneficio {
   @@schema("rh")
 }
 
+enum Role {
+  ADMIN
+  GESTOR
+  COLABORADOR
+
+  @@map("role")
+  @@schema("rh")
+}
+
 model Cargo {
   id           String   @id @default(cuid())
   nome         String
@@ -101,6 +110,7 @@ model Funcionario {
   cpf          String            @unique
   dataAdmissao DateTime          @map("data_admissao")
   status       StatusFuncionario @default(ATIVO)
+  role         Role              @default(ADMIN)
   cargoId      String            @map("cargo_id")
   salarioAtual Decimal           @map("salario_atual") @db.Decimal(10, 2)
   createdAt    DateTime          @default(now()) @map("created_at")
@@ -199,5 +209,25 @@ model ItemFolha {
   @@unique([folhaId, funcionarioId])
   @@index([funcionarioId])
   @@map("itens_folha")
+  @@schema("rh")
+}
+
+// Trilha de auditoria de ações sensíveis (alteração salarial, mudança de
+// status/cargo, aprovação/cancelamento de férias, pagamento de folha).
+// Registrada pela aplicação via src/lib/audit.ts — nunca editável pela UI.
+model AuditLog {
+  id          String   @id @default(cuid())
+  usuarioId   String?  @map("usuario_id")
+  usuarioNome String?  @map("usuario_nome")
+  acao        String
+  entidade    String
+  entidadeId  String?  @map("entidade_id")
+  detalhes    String?
+  createdAt   DateTime @default(now()) @map("created_at")
+
+  @@index([acao])
+  @@index([entidade])
+  @@index([createdAt])
+  @@map("audit_logs")
   @@schema("rh")
 }

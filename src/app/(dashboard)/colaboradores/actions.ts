@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { prisma } from "@/lib/prisma"
 import { Prisma, StatusFerias, StatusFuncionario } from "@/generated/prisma/client"
+import { registrarAuditLog } from "@/lib/audit"
 
 export interface ActionResult {
   success: boolean
@@ -191,9 +192,11 @@ export async function updateFuncionario(
   try {
     const atual = await prisma.funcionario.findUniqueOrThrow({
       where: { id },
-      select: { salarioAtual: true, status: true },
+      select: { salarioAtual: true, status: true, cargoId: true },
     })
     const salarioMudou = atual.salarioAtual.toNumber() !== result.data.salarioAtual
+    const cargoMudou = atual.cargoId !== result.data.cargoId
+    const statusMudou = atual.status !== result.data.status
     const saiuDeFerias =
       atual.status === StatusFuncionario.FERIAS &&
       result.data.status !== StatusFuncionario.FERIAS
@@ -203,6 +206,17 @@ export async function updateFuncionario(
         success: false,
         message: "Informe o motivo da alteração salarial.",
       }
+    }
+
+    let cargoAnteriorNome: string | undefined
+    let cargoNovoNome: string | undefined
+    if (cargoMudou) {
+      const cargos = await prisma.cargo.findMany({
+        where: { id: { in: [atual.cargoId, result.data.cargoId] } },
+        select: { id: true, nome: true },
+      })
+      cargoAnteriorNome = cargos.find((cargo) => cargo.id === atual.cargoId)?.nome
+      cargoNovoNome = cargos.find((cargo) => cargo.id === result.data.cargoId)?.nome
     }
 
     await prisma.$transaction(async (tx) => {
@@ -216,6 +230,52 @@ export async function updateFuncionario(
             motivo: motivoAlteracaoSalarial,
           },
         })
+        await registrarAuditLog(
+          {
+            acao: "ALTERACAO_SALARIO",
+            entidade: "Funcionario",
+            entidadeId: id,
+            detalhes: JSON.stringify({
+              funcionario: result.data.nome,
+              salarioAnterior: atual.salarioAtual.toNumber(),
+              salarioNovo: result.data.salarioAtual,
+              motivo: motivoAlteracaoSalarial,
+            }),
+          },
+          tx
+        )
+      }
+
+      if (cargoMudou) {
+        await registrarAuditLog(
+          {
+            acao: "ALTERACAO_CARGO",
+            entidade: "Funcionario",
+            entidadeId: id,
+            detalhes: JSON.stringify({
+              funcionario: result.data.nome,
+              cargoAnterior: cargoAnteriorNome ?? atual.cargoId,
+              cargoNovo: cargoNovoNome ?? result.data.cargoId,
+            }),
+          },
+          tx
+        )
+      }
+
+      if (statusMudou) {
+        await registrarAuditLog(
+          {
+            acao: "ALTERACAO_STATUS",
+            entidade: "Funcionario",
+            entidadeId: id,
+            detalhes: JSON.stringify({
+              funcionario: result.data.nome,
+              statusAnterior: atual.status,
+              statusNovo: result.data.status,
+            }),
+          },
+          tx
+        )
       }
 
       // O RH tirou manualmente o colaborador de FERIAS (ex.: voltou mais

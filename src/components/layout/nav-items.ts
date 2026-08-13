@@ -6,6 +6,7 @@ import {
   ClipboardCheck,
   HeartHandshake,
   LayoutDashboard,
+  ShieldCheck,
   SlidersHorizontal,
   Users,
 } from "lucide-react"
@@ -43,6 +44,12 @@ export const navGroups: NavGroup[] = [
     label: "Análises",
     items: [
       { title: "Filtros e Métricas", href: "/filtros", icon: SlidersHorizontal },
+    ],
+  },
+  {
+    label: "Segurança",
+    items: [
+      { title: "Auditoria & Segurança", href: "/auditoria", icon: ShieldCheck },
     ],
   },
 ]

@@ -25,6 +25,46 @@ Todos os módulos abaixo são Server Components + Server Actions ligados diretam
 - **Férias e Ausências** — agendamento com validação de sobreposição de período, cancelamento, timeline por departamento e **sincronização automática de status**: agendar/cancelar férias atualiza `Funcionario.status` (`ATIVO` ↔ `FÉRIAS`) em tempo real, refletido tanto na listagem de Colaboradores quanto nos KPIs da Visão Geral.
 - **Folha de Pagamento** — geração de folha por período, edição de proventos/descontos, "Marcar como Pago" (individual ou em lote), com status derivado automaticamente (Pendente → Processando → Pago).
 - **Filtros e Métricas** — página somente leitura com KPIs agregados do quadro inteiro (folha salarial, custo de benefícios, colaboradores ativos/em férias) e uma tabela filtrável (departamento, cargo, status, faixa salarial, período de admissão) com exportação para CSV.
+- **Auditoria & Segurança** — trilha de auditoria (Audit Log) das ações sensíveis da plataforma, com busca por texto e filtro por ação; ver seção própria abaixo.
+
+## Segurança, LGPD & Trilha de Auditoria (Audit Log)
+
+O RH lida com dados pessoais e financeiros (salário, CPF, status de vínculo),
+então toda ação que altera esse tipo de dado sensível é registrada numa
+trilha de auditoria imutável, além de já contar com uma modelagem de papéis
+(RBAC) pronta para restringir acesso por perfil.
+
+- **`Role`** (`ADMIN` / `GESTOR` / `COLABORADOR`) — enum de papel de acesso,
+  hoje presente como o campo `Funcionario.role` (`@default(ADMIN)`) na
+  modelagem do banco. É a base para RBAC (controle de acesso por perfil);
+  este boilerplate ainda não tem autenticação real, então o campo existe no
+  schema mas nenhuma tela restringe ações por papel ainda — ver `role` em
+  `prisma/schema.prisma`.
+- **`AuditLog`** — tabela de auditoria (`rh.audit_logs`) que guarda quem fez
+  o quê, quando e com quais valores antes/depois. Populada pelo helper
+  `registrarAuditLog()` (`src/lib/audit.ts`), nunca editada manualmente.
+  Ações registradas hoje:
+  - `ALTERACAO_SALARIO`, `ALTERACAO_CARGO`, `ALTERACAO_STATUS` — disparadas
+    de `colaboradores/actions.ts` (`updateFuncionario`) sempre que o
+    respectivo campo muda numa edição de colaborador, com valor anterior e
+    novo em `detalhes` (JSON serializado).
+  - `APROVACAO_FERIAS`, `CANCELAMENTO_FERIAS` — disparadas de
+    `ferias/actions.ts` (`createFerias`/`cancelFerias`), com o período e o
+    colaborador afetado.
+  - `PAGAMENTO_FOLHA` — disparada de `folha/actions.ts`
+    (`marcarItemComoPago`), com o valor líquido e a data do pagamento.
+  - Como o projeto ainda não tem autenticação real, `usuarioNome` cai para
+    o usuário mock do topbar (`currentUser` em `lib/mock-data.ts`) quando o
+    chamador não informa quem agiu; `usuarioId` fica `null` até existir uma
+    sessão de verdade.
+- **`/auditoria`** — tela somente leitura (rota `app/(dashboard)/auditoria/`)
+  com a trilha completa: Data/Hora, Usuário, Ação, Entidade e Detalhes (JSON
+  pretty-printed em tooltip), com busca por texto livre e filtro por ação.
+  Acessível pelo item "Auditoria & Segurança" na sidebar.
+
+Nenhuma dessas ações é reversível pela UI (não existe "editar"/"excluir" um
+`AuditLog`) — é, por design, um registro histórico, no mesmo espírito do
+`HistoricoSalario` e do `ItemFolha` já pago.
 
 ## Rodando localmente
 
@@ -84,11 +124,13 @@ src/
       ferias/                  # Férias e Ausências
       folha/                    # Folha de Pagamento
       filtros/                   # Filtros Avançados e Métricas
+      auditoria/                  # Auditoria & Segurança (Audit Log)
   components/
     ui/                  # componentes shadcn/ui
     layout/               # sidebar, topbar, navegação
   lib/
     prisma.ts            # singleton do PrismaClient
+    audit.ts              # registrarAuditLog() — grava na tabela AuditLog
 ```
 
 Para detalhes de arquitetura, convenções do Design System e decisões técnicas do stack (Prisma 7, TanStack Table v9, Next.js 16, base-ui), veja `CLAUDE.md`.

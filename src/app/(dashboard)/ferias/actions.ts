@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 import { prisma } from "@/lib/prisma"
 import { StatusFerias } from "@/generated/prisma/client"
 import { syncFuncionarioStatusFerias } from "@/lib/sync-funcionario-ferias-status"
+import { registrarAuditLog } from "@/lib/audit"
 
 export interface ActionResult {
   success: boolean
@@ -83,7 +84,7 @@ export async function createFerias(
     }
   }
 
-  await prisma.ferias.create({
+  const ferias = await prisma.ferias.create({
     data: {
       funcionarioId,
       dataInicio,
@@ -91,6 +92,18 @@ export async function createFerias(
       dias,
       status: StatusFerias.AGENDADA,
     },
+  })
+
+  await registrarAuditLog({
+    acao: "APROVACAO_FERIAS",
+    entidade: "Ferias",
+    entidadeId: ferias.id,
+    detalhes: JSON.stringify({
+      funcionario: funcionario.nome,
+      dataInicio: dataInicio.toISOString(),
+      dataFim: dataFim.toISOString(),
+      dias,
+    }),
   })
 
   // Se o período já começou (cobre a data de hoje), o colaborador entra em
@@ -118,6 +131,18 @@ export async function cancelFerias(id: string): Promise<ActionResult> {
     // Se esse período era o motivo do colaborador estar em FERIAS, e não há
     // outro período em andamento, ele volta para ATIVO.
     await syncFuncionarioStatusFerias(ferias.funcionarioId)
+
+    await registrarAuditLog({
+      acao: "CANCELAMENTO_FERIAS",
+      entidade: "Ferias",
+      entidadeId: ferias.id,
+      detalhes: JSON.stringify({
+        funcionario: ferias.funcionario.nome,
+        dataInicio: ferias.dataInicio.toISOString(),
+        dataFim: ferias.dataFim.toISOString(),
+        dias: ferias.dias,
+      }),
+    })
 
     revalidatePath("/ferias")
     revalidatePath("/colaboradores")

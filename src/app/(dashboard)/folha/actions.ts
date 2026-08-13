@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache"
 
 import { prisma } from "@/lib/prisma"
 import { Prisma, StatusFolha, StatusItemFolha } from "@/generated/prisma/client"
+import { registrarAuditLog } from "@/lib/audit"
 
 export interface ActionResult {
   success: boolean
@@ -205,7 +206,23 @@ export async function marcarItemComoPago(itemId: string): Promise<ActionResult> 
       data: { status: StatusItemFolha.PAGO, dataPagamento: new Date() },
       include: { funcionario: { select: { nome: true } } },
     })
-    await prisma.$transaction((tx) => recomputeFolhaStatus(tx, item.folhaId))
+    await prisma.$transaction(async (tx) => {
+      await recomputeFolhaStatus(tx, item.folhaId)
+      await registrarAuditLog(
+        {
+          acao: "PAGAMENTO_FOLHA",
+          entidade: "Folha",
+          entidadeId: item.folhaId,
+          detalhes: JSON.stringify({
+            funcionario: item.funcionario.nome,
+            itemFolhaId: item.id,
+            valorLiquido: item.valorLiquido.toNumber(),
+            dataPagamento: item.dataPagamento?.toISOString() ?? null,
+          }),
+        },
+        tx
+      )
+    })
 
     revalidatePath("/folha")
     return {
