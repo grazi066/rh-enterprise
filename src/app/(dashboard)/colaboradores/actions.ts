@@ -161,6 +161,22 @@ export async function createFuncionario(
         },
       })
 
+      await registrarAuditLog(
+        {
+          acao: "CRIACAO_COLABORADOR",
+          entidade: "Funcionario",
+          entidadeId: funcionario.id,
+          detalhes: JSON.stringify({
+            funcionario: funcionario.nome,
+            email: funcionario.email,
+            cargoId: funcionario.cargoId,
+            salarioAtual: result.data.salarioAtual,
+            dataAdmissao: result.data.dataAdmissao.toISOString(),
+          }),
+        },
+        tx
+      )
+
       await syncBeneficios(tx, funcionario.id, beneficiosSelecionados)
     })
   } catch (error) {

@@ -2,6 +2,7 @@
 
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@/generated/prisma/client"
+import { registrarAuditLog } from "@/lib/audit"
 import { revalidateAppPaths } from "@/lib/revalidate"
 
 export interface ActionResult {
@@ -52,7 +53,22 @@ export async function createCargo(
     return { success: false, message: result.error }
   }
 
-  await prisma.cargo.create({ data: result.data })
+  try {
+    const cargo = await prisma.cargo.create({ data: result.data })
+
+    await registrarAuditLog({
+      acao: "CRIACAO_CARGO",
+      entidade: "Cargo",
+      entidadeId: cargo.id,
+      detalhes: JSON.stringify({
+        nome: cargo.nome,
+        departamento: cargo.departamento,
+        salarioBase: result.data.salarioBase,
+      }),
+    })
+  } catch {
+    return { success: false, message: "Erro ao cadastrar o cargo. Verifique os dados informados." }
+  }
 
   revalidateAppPaths()
   return {
