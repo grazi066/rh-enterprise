@@ -7,11 +7,11 @@ import { Building2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { navGroups } from "@/components/layout/nav-items"
 
-export function Sidebar() {
+export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
   const pathname = usePathname()
 
   return (
-    <aside className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
+    <>
       <div className="flex h-16 items-center gap-2 px-6">
         <div className="flex size-8 items-center justify-center rounded-lg bg-sidebar-primary text-sidebar-primary-foreground">
           <Building2 className="size-4" />
@@ -38,6 +38,7 @@ export function Sidebar() {
                   <Link
                     key={item.href}
                     href={item.href}
+                    onClick={onNavigate}
                     className={cn(
                       "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
                       isActive
@@ -66,6 +67,14 @@ export function Sidebar() {
       <div className="border-t border-sidebar-border p-3 text-xs text-sidebar-foreground/40">
         v0.1.0 · Ambiente de demonstração
       </div>
+    </>
+  )
+}
+
+export function Sidebar() {
+  return (
+    <aside className="hidden w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar text-sidebar-foreground md:flex">
+      <SidebarNavContent />
     </aside>
   )
 }

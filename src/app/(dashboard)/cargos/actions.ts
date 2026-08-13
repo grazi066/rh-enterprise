@@ -1,9 +1,8 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { prisma } from "@/lib/prisma"
 import { Prisma } from "@/generated/prisma/client"
+import { revalidateAppPaths } from "@/lib/revalidate"
 
 export interface ActionResult {
   success: boolean
@@ -55,7 +54,7 @@ export async function createCargo(
 
   await prisma.cargo.create({ data: result.data })
 
-  revalidatePath("/cargos")
+  revalidateAppPaths()
   return {
     success: true,
     message: `Cargo "${result.data.nome}" criado com sucesso.`,
@@ -78,7 +77,7 @@ export async function updateCargo(
 
   await prisma.cargo.update({ where: { id }, data: result.data })
 
-  revalidatePath("/cargos")
+  revalidateAppPaths()
   return {
     success: true,
     message: `Cargo "${result.data.nome}" atualizado com sucesso.`,
@@ -88,7 +87,7 @@ export async function updateCargo(
 export async function deleteCargo(id: string): Promise<ActionResult> {
   try {
     const cargo = await prisma.cargo.delete({ where: { id } })
-    revalidatePath("/cargos")
+    revalidateAppPaths()
     return { success: true, message: `Cargo "${cargo.nome}" excluído.` }
   } catch (error) {
     if (

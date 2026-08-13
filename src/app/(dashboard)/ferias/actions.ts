@@ -1,11 +1,10 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { prisma } from "@/lib/prisma"
 import { StatusFerias } from "@/generated/prisma/client"
 import { syncFuncionarioStatusFerias } from "@/lib/sync-funcionario-ferias-status"
 import { registrarAuditLog } from "@/lib/audit"
+import { revalidateAppPaths } from "@/lib/revalidate"
 
 export interface ActionResult {
   success: boolean
@@ -111,9 +110,7 @@ export async function createFerias(
   // reconcileAllFuncionarioStatusFerias() para quando o período chegar.
   await syncFuncionarioStatusFerias(funcionarioId)
 
-  revalidatePath("/ferias")
-  revalidatePath("/colaboradores")
-  revalidatePath("/")
+  revalidateAppPaths()
   return {
     success: true,
     message: `Férias de ${funcionario.nome} agendadas com sucesso.`,
@@ -144,9 +141,7 @@ export async function cancelFerias(id: string): Promise<ActionResult> {
       }),
     })
 
-    revalidatePath("/ferias")
-    revalidatePath("/colaboradores")
-    revalidatePath("/")
+    revalidateAppPaths()
     return {
       success: true,
       message: `Férias de ${ferias.funcionario.nome} canceladas.`,

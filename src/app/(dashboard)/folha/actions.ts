@@ -1,10 +1,9 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { prisma } from "@/lib/prisma"
 import { Prisma, StatusFolha, StatusItemFolha } from "@/generated/prisma/client"
 import { registrarAuditLog } from "@/lib/audit"
+import { revalidateAppPaths } from "@/lib/revalidate"
 
 export interface ActionResult {
   success: boolean
@@ -127,7 +126,7 @@ export async function gerarFolha(mes: number, ano: number): Promise<ActionResult
     return { success: false, message: "Erro ao gerar a folha de pagamento." }
   }
 
-  revalidatePath("/folha")
+  revalidateAppPaths()
   return {
     success: true,
     message: `Folha de ${periodoLabel(mes, ano)} gerada com ${itens.length} colaborador(es).`,
@@ -192,7 +191,7 @@ export async function editarItemFolha(
     return { success: false, message: "Erro ao atualizar o item da folha." }
   }
 
-  revalidatePath("/folha")
+  revalidateAppPaths()
   return {
     success: true,
     message: `Item de ${itemAtual.funcionario.nome} atualizado.`,
@@ -224,7 +223,7 @@ export async function marcarItemComoPago(itemId: string): Promise<ActionResult> 
       )
     })
 
-    revalidatePath("/folha")
+    revalidateAppPaths()
     return {
       success: true,
       message: `Pagamento de ${item.funcionario.nome} marcado como pago.`,
@@ -237,15 +236,40 @@ export async function marcarItemComoPago(itemId: string): Promise<ActionResult> 
 export async function processarFolhaCompleta(folhaId: string): Promise<ActionResult> {
   try {
     const totalPago = await prisma.$transaction(async (tx) => {
-      const { count } = await tx.itemFolha.updateMany({
+      const itensPendentes = await tx.itemFolha.findMany({
         where: { folhaId, status: StatusItemFolha.PENDENTE },
-        data: { status: StatusItemFolha.PAGO, dataPagamento: new Date() },
+        include: { funcionario: { select: { nome: true } } },
+      })
+      if (itensPendentes.length === 0) return 0
+
+      const dataPagamento = new Date()
+      await tx.itemFolha.updateMany({
+        where: { folhaId, status: StatusItemFolha.PENDENTE },
+        data: { status: StatusItemFolha.PAGO, dataPagamento },
       })
       await recomputeFolhaStatus(tx, folhaId)
-      return count
+
+      for (const item of itensPendentes) {
+        await registrarAuditLog(
+          {
+            acao: "PAGAMENTO_FOLHA",
+            entidade: "Folha",
+            entidadeId: folhaId,
+            detalhes: JSON.stringify({
+              funcionario: item.funcionario.nome,
+              itemFolhaId: item.id,
+              valorLiquido: item.valorLiquido.toNumber(),
+              dataPagamento: dataPagamento.toISOString(),
+            }),
+          },
+          tx
+        )
+      }
+
+      return itensPendentes.length
     })
 
-    revalidatePath("/folha")
+    revalidateAppPaths()
 
     if (totalPago === 0) {
       return { success: true, message: "Todos os pagamentos já estavam quitados." }

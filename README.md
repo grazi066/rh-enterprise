@@ -2,6 +2,8 @@
 
 Boilerplate de uma plataforma corporativa de gestão de Recursos Humanos, construída com **Next.js 16 (App Router)**, **TypeScript**, **Tailwind CSS v4** e **shadcn/ui**, sobre um Design System próprio (Indigo/Violeta + Slate/Zinc — sem preto/branco/cinza puro). Os módulos de negócio são 100% ligados a um banco **PostgreSQL (Neon)** via **Prisma ORM 7**.
 
+Layout responsivo (mobile e tablet friendly): sidebar retrátil em drawer abaixo do breakpoint `md`, tabelas com rolagem horizontal e grids de métricas que se reorganizam por tamanho de tela.
+
 ## Stack
 
 | Camada | Tecnologia |
@@ -52,7 +54,10 @@ trilha de auditoria imutável, além de já contar com uma modelagem de papéis
     `ferias/actions.ts` (`createFerias`/`cancelFerias`), com o período e o
     colaborador afetado.
   - `PAGAMENTO_FOLHA` — disparada de `folha/actions.ts`
-    (`marcarItemComoPago`), com o valor líquido e a data do pagamento.
+    (`marcarItemComoPago` e `processarFolhaCompleta`, no pagamento individual
+    e em lote), com o valor líquido e a data do pagamento.
+  - `EXCLUSAO_COLABORADOR` — disparada de `colaboradores/actions.ts`
+    (`deleteFuncionario`) ao excluir um cadastro.
   - Como o projeto ainda não tem autenticação real, `usuarioNome` cai para
     o usuário mock do topbar (`currentUser` em `lib/mock-data.ts`) quando o
     chamador não informa quem agiu; `usuarioId` fica `null` até existir uma
@@ -65,6 +70,25 @@ trilha de auditoria imutável, além de já contar com uma modelagem de papéis
 Nenhuma dessas ações é reversível pela UI (não existe "editar"/"excluir" um
 `AuditLog`) — é, por design, um registro histórico, no mesmo espírito do
 `HistoricoSalario` e do `ItemFolha` já pago.
+
+## Layout responsivo (Mobile & Tablet Friendly)
+
+Todo o shell autenticado (`app/(dashboard)/layout.tsx`) e os módulos de
+negócio são pensados para funcionar em celulares e tablets, não só em
+desktop:
+
+- **Sidebar retrátil** — abaixo do breakpoint `md`, a sidebar fixa vira um
+  menu hambúrguer no topbar que abre um drawer (`Sheet` do shadcn/ui) com a
+  mesma navegação, fechado automaticamente ao trocar de rota
+  (`components/layout/mobile-sidebar.tsx`).
+- **Tabelas com rolagem horizontal** — o componente base `Table`
+  (`components/ui/table.tsx`) já envolve toda tabela num container
+  `overflow-x-auto`, então Colaboradores, Folha, Férias, Auditoria e
+  Filtros permanecem legíveis em telas estreitas sem quebrar o layout.
+- **Grids de métricas responsivas** — os cards de KPI (Visão Geral, Filtros,
+  Folha, Auditoria, Cargos, Benefícios) usam
+  `grid-cols-1 sm:grid-cols-2 lg:grid-cols-4` (ou variação equivalente),
+  empilhando em uma coluna no celular e expandindo em telas maiores.
 
 ## Rodando localmente
 
@@ -106,7 +130,7 @@ O projeto é otimizado para deploy na [Vercel](https://vercel.com):
 2. Configure a variável de ambiente `DATABASE_URL` apontando para o banco Neon de produção.
 3. Deploy — a Vercel roda `npm run build` automaticamente.
 
-Como o schema Postgres deste projeto vive isolado em `rh` (banco compartilhado com outros projetos), migrations são aplicadas com `prisma migrate deploy`, não `migrate dev` — ver `CLAUDE.md` para detalhes de infraestrutura.
+Como o schema Postgres deste projeto vive isolado em `rh` (banco compartilhado com outros projetos), migrations são aplicadas com `prisma migrate deploy`, não `migrate dev`.
 
 ## Estrutura do projeto
 
@@ -127,13 +151,12 @@ src/
       auditoria/                  # Auditoria & Segurança (Audit Log)
   components/
     ui/                  # componentes shadcn/ui
-    layout/               # sidebar, topbar, navegação
+    layout/               # sidebar, topbar, navegação, drawer mobile
   lib/
     prisma.ts            # singleton do PrismaClient
     audit.ts              # registrarAuditLog() — grava na tabela AuditLog
+    revalidate.ts          # revalidateAppPaths() — revalida as rotas afetadas após cada mutação
 ```
-
-Para detalhes de arquitetura, convenções do Design System e decisões técnicas do stack (Prisma 7, TanStack Table v9, Next.js 16, base-ui), veja `CLAUDE.md`.
 
 ## Licença
 

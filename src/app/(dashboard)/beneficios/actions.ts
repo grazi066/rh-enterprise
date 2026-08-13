@@ -1,9 +1,8 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { prisma } from "@/lib/prisma"
 import { Prisma, TipoBeneficio } from "@/generated/prisma/client"
+import { revalidateAppPaths } from "@/lib/revalidate"
 
 export interface ActionResult {
   success: boolean
@@ -59,7 +58,7 @@ export async function createBeneficio(
 
   await prisma.beneficio.create({ data: result.data })
 
-  revalidatePath("/beneficios")
+  revalidateAppPaths()
   return {
     success: true,
     message: `Benefício "${result.data.nome}" criado com sucesso.`,
@@ -82,7 +81,7 @@ export async function updateBeneficio(
 
   await prisma.beneficio.update({ where: { id }, data: result.data })
 
-  revalidatePath("/beneficios")
+  revalidateAppPaths()
   return {
     success: true,
     message: `Benefício "${result.data.nome}" atualizado com sucesso.`,
@@ -92,7 +91,7 @@ export async function updateBeneficio(
 export async function deleteBeneficio(id: string): Promise<ActionResult> {
   try {
     const beneficio = await prisma.beneficio.delete({ where: { id } })
-    revalidatePath("/beneficios")
+    revalidateAppPaths()
     return { success: true, message: `Benefício "${beneficio.nome}" excluído.` }
   } catch (error) {
     if (error instanceof Prisma.PrismaClientKnownRequestError) {

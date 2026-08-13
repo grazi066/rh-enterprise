@@ -1,10 +1,9 @@
 "use server"
 
-import { revalidatePath } from "next/cache"
-
 import { prisma } from "@/lib/prisma"
 import { Prisma, StatusFerias, StatusFuncionario } from "@/generated/prisma/client"
 import { registrarAuditLog } from "@/lib/audit"
+import { revalidateAppPaths } from "@/lib/revalidate"
 
 export interface ActionResult {
   success: boolean
@@ -168,7 +167,7 @@ export async function createFuncionario(
     return friendlyPrismaError(error, "Erro ao cadastrar o colaborador.")
   }
 
-  revalidatePath("/colaboradores")
+  revalidateAppPaths()
   return { success: true, message: `Colaborador "${result.data.nome}" cadastrado com sucesso.` }
 }
 
@@ -302,16 +301,20 @@ export async function updateFuncionario(
     return friendlyPrismaError(error, "Erro ao atualizar o colaborador.")
   }
 
-  revalidatePath("/colaboradores")
-  revalidatePath("/ferias")
-  revalidatePath("/")
+  revalidateAppPaths()
   return { success: true, message: `Colaborador "${result.data.nome}" atualizado com sucesso.` }
 }
 
 export async function deleteFuncionario(id: string): Promise<ActionResult> {
   try {
     const funcionario = await prisma.funcionario.delete({ where: { id } })
-    revalidatePath("/colaboradores")
+    await registrarAuditLog({
+      acao: "EXCLUSAO_COLABORADOR",
+      entidade: "Funcionario",
+      entidadeId: id,
+      detalhes: JSON.stringify({ funcionario: funcionario.nome }),
+    })
+    revalidateAppPaths()
     return { success: true, message: `Colaborador "${funcionario.nome}" excluído.` }
   } catch {
     return { success: false, message: "Erro ao excluir o colaborador." }

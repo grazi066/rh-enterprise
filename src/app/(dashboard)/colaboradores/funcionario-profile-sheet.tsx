@@ -93,7 +93,7 @@ export function FuncionarioProfileSheet({
             </SheetHeader>
 
             <div className="flex-1 space-y-6 overflow-y-auto px-4 py-4">
-              <section className="grid grid-cols-2 gap-4 text-sm">
+              <section className="grid grid-cols-1 gap-4 text-sm sm:grid-cols-2">
                 <div>
                   <p className="text-xs text-muted-foreground">E-mail</p>
                   <p className="truncate">{funcionario.email}</p>
