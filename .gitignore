@@ -40,6 +40,8 @@ yarn-error.log*
 /.agents/
 /.claude/
 /.windsurf/
+/CLAUDE.md
+/AGENTS.md
 
 # typescript
 *.tsbuildinfo
