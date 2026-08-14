@@ -1,12 +1,18 @@
 import type { LucideIcon } from "lucide-react"
 import {
   Banknote,
+  Briefcase,
   CalendarCheck,
   CalendarX,
+  CheckCircle2,
+  FilePlus,
   FileText,
   ToggleLeft,
   UserCog,
+  UserMinus,
+  UserPlus,
   Wallet,
+  XCircle,
 } from "lucide-react"
 
 import { cn } from "@/lib/utils"
@@ -19,8 +25,41 @@ interface AcaoAuditoriaConfig {
 
 // Paleta própria para ações de auditoria (mesmo espírito de
 // beneficio-badge.tsx: taxonomia sem workflow, fora do trio verde/âmbar/azul
-// reservado a status de fluxo — ver CLAUDE.md "Design System").
+// reservado a status de fluxo — ver CLAUDE.md "Design System"), com uma
+// exceção deliberada: ações de criação/aprovação/rejeição usam esse trio
+// (azul/verde/vermelho) porque elas *são* o resultado de um fluxo de
+// aprovação, e a cor precisa comunicar isso à primeira vista.
 const ACAO_AUDITORIA_CONFIG: Record<string, AcaoAuditoriaConfig> = {
+  CRIACAO_SOLICITACAO: {
+    label: "Criação de Solicitação",
+    icon: FilePlus,
+    className: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
+  },
+  APROVACAO_SOLICITACAO: {
+    label: "Aprovação de Solicitação",
+    icon: CheckCircle2,
+    className: "bg-green-100 text-green-700 dark:bg-green-500/15 dark:text-green-400",
+  },
+  REJEICAO_SOLICITACAO: {
+    label: "Rejeição de Solicitação",
+    icon: XCircle,
+    className: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+  },
+  CRIACAO_COLABORADOR: {
+    label: "Criação de Colaborador",
+    icon: UserPlus,
+    className: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
+  },
+  EXCLUSAO_COLABORADOR: {
+    label: "Exclusão de Colaborador",
+    icon: UserMinus,
+    className: "bg-red-100 text-red-700 dark:bg-red-500/15 dark:text-red-400",
+  },
+  CRIACAO_CARGO: {
+    label: "Criação de Cargo",
+    icon: Briefcase,
+    className: "bg-blue-100 text-blue-700 dark:bg-blue-500/15 dark:text-blue-400",
+  },
   ALTERACAO_SALARIO: {
     label: "Alteração de Salário",
     icon: Wallet,

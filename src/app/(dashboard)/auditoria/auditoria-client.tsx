@@ -1,7 +1,7 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { FileJson } from "lucide-react"
+import { Info } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import {
@@ -22,23 +22,8 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { ColoredAvatar } from "@/components/colored-avatar"
 import { AcaoAuditoriaBadge, acaoAuditoriaLabel } from "@/components/audit-acao-badge"
+import { formatAuditDetails, getAuditJustificativa } from "./format-audit-details"
 import type { AuditLogDTO } from "./types"
-
-function formatarDetalhes(detalhes: string | null) {
-  if (!detalhes) return null
-  try {
-    return JSON.stringify(JSON.parse(detalhes), null, 2)
-  } catch {
-    return detalhes
-  }
-}
-
-function resumoDetalhes(detalhes: string | null) {
-  if (!detalhes) return "—"
-  const formatado = formatarDetalhes(detalhes) ?? detalhes
-  const linhaUnica = formatado.replace(/\s+/g, " ").trim()
-  return linhaUnica.length > 70 ? `${linhaUnica.slice(0, 70)}…` : linhaUnica
-}
 
 export function AuditoriaClient({ logs }: { logs: AuditLogDTO[] }) {
   const [busca, setBusca] = useState("")
@@ -135,23 +120,34 @@ export function AuditoriaClient({ logs }: { logs: AuditLogDTO[] }) {
                     )}
                   </TableCell>
                   <TableCell className="max-w-xs">
-                    {log.detalhes ? (
-                      <Tooltip>
-                        <TooltipTrigger
-                          render={
-                            <span className="flex items-center gap-1.5 text-muted-foreground">
-                              <FileJson className="size-3.5 shrink-0" />
-                              <span className="truncate">{resumoDetalhes(log.detalhes)}</span>
-                            </span>
-                          }
-                        />
-                        <TooltipContent className="max-w-sm whitespace-pre-wrap font-mono text-xs">
-                          {formatarDetalhes(log.detalhes)}
-                        </TooltipContent>
-                      </Tooltip>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
-                    )}
+                    {(() => {
+                      const resumo = formatAuditDetails(log.acao, log.detalhes)
+                      const justificativa = getAuditJustificativa(log.detalhes)
+
+                      if (resumo === "—") {
+                        return <span className="text-muted-foreground">—</span>
+                      }
+
+                      if (!justificativa) {
+                        return <span className="block truncate">{resumo}</span>
+                      }
+
+                      return (
+                        <Tooltip>
+                          <TooltipTrigger
+                            render={
+                              <span className="flex items-center gap-1.5">
+                                <span className="truncate">{resumo}</span>
+                                <Info className="size-3.5 shrink-0 text-muted-foreground" />
+                              </span>
+                            }
+                          />
+                          <TooltipContent className="max-w-sm whitespace-pre-wrap text-xs">
+                            <span className="font-medium">Justificativa:</span> {justificativa}
+                          </TooltipContent>
+                        </Tooltip>
+                      )
+                    })()}
                   </TableCell>
                 </TableRow>
               ))
