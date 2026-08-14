@@ -1,11 +1,7 @@
 import { Briefcase, CalendarClock, ClipboardCheck, Users } from "lucide-react"
 
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { MetricCard } from "@/components/metric-card"
 import { prisma } from "@/lib/prisma"
 import { reconcileAllFuncionarioStatusFerias } from "@/lib/sync-funcionario-ferias-status"
 import { STATUS_SOLICITACAO_TO_APPROVAL_STATUS } from "@/lib/status-labels"
@@ -52,21 +48,29 @@ export default async function DashboardPage() {
       label: "Colaboradores ativos",
       value: colaboradoresAtivos,
       icon: Users,
+      colorClassName: "bg-success/10 text-success",
+      accentClassName: "border-l-success",
     },
     {
       label: "Em férias",
       value: colaboradoresEmFerias,
       icon: CalendarClock,
+      colorClassName: "bg-warning/10 text-warning",
+      accentClassName: "border-l-warning",
     },
     {
       label: "Aprovações pendentes",
       value: solicitacoesPendentesDTO.length,
       icon: ClipboardCheck,
+      colorClassName: "bg-info/10 text-info",
+      accentClassName: "border-l-info",
     },
     {
       label: "Departamentos",
       value: departamentosDistintos.length,
       icon: Briefcase,
+      colorClassName: "bg-primary/10 text-primary",
+      accentClassName: "border-l-primary",
     },
   ]
 
@@ -83,19 +87,14 @@ export default async function DashboardPage() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {kpis.map((kpi) => (
-          <Card key={kpi.label}>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground">
-                {kpi.label}
-              </CardTitle>
-              <div className="flex size-8 items-center justify-center rounded-md bg-accent text-accent-foreground">
-                <kpi.icon className="size-4" />
-              </div>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-semibold">{kpi.value}</div>
-            </CardContent>
-          </Card>
+          <MetricCard
+            key={kpi.label}
+            label={kpi.label}
+            value={kpi.value.toString()}
+            icon={kpi.icon}
+            colorClassName={kpi.colorClassName}
+            accentClassName={kpi.accentClassName}
+          />
         ))}
       </div>
 

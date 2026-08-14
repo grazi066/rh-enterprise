@@ -35,19 +35,46 @@ const badgeVariants = cva(
   }
 )
 
+// Variantes de status (não as genéricas default/secondary/outline/ghost/link)
+// ganham um status-dot colorido antes do rótulo — herda a cor do texto via
+// bg-current, então o ponto sempre casa com o fundo pastel da variante.
+const STATUS_DOT_VARIANTS = new Set([
+  "success",
+  "warning",
+  "info",
+  "away",
+  "destructive",
+])
+
 function Badge({
   className,
   variant = "default",
   render,
+  children,
   ...props
 }: useRender.ComponentProps<"span"> & VariantProps<typeof badgeVariants>) {
+  const showDot = STATUS_DOT_VARIANTS.has(variant ?? "default")
+
   return useRender({
     defaultTagName: "span",
     props: mergeProps<"span">(
       {
         className: cn(badgeVariants({ variant }), className),
       },
-      props
+      {
+        ...props,
+        children: (
+          <>
+            {showDot && (
+              <span
+                aria-hidden="true"
+                className="size-1.5 shrink-0 rounded-full bg-current"
+              />
+            )}
+            {children}
+          </>
+        ),
+      }
     ),
     render,
     state: {

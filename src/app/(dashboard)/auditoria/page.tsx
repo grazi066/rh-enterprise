@@ -50,18 +50,21 @@ export default async function AuditoriaPage() {
           value={logs.length.toString()}
           icon={ShieldCheck}
           colorClassName="bg-primary/10 text-primary"
+          accentClassName="border-l-primary"
         />
         <MetricCard
           label="Registros Hoje"
           value={registrosHoje.toString()}
           icon={CalendarClock}
           colorClassName="bg-info/10 text-info"
+          accentClassName="border-l-info"
         />
         <MetricCard
           label="Usuários Envolvidos"
           value={usuariosUnicos.toString()}
           icon={UserRound}
           colorClassName="bg-accent/10 text-accent-foreground"
+          accentClassName="border-l-accent-foreground"
         />
       </div>
 

@@ -40,14 +40,14 @@ export function SidebarNavContent({ onNavigate }: { onNavigate?: () => void }) {
                     href={item.href}
                     onClick={onNavigate}
                     className={cn(
-                      "relative flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                      "relative flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                       isActive
-                        ? "bg-sidebar-primary/15 text-sidebar-primary-foreground"
+                        ? "bg-sidebar-primary/15 text-sidebar-primary-foreground ring-1 ring-inset ring-sidebar-primary/25"
                         : "text-sidebar-foreground/65 hover:bg-sidebar-accent hover:text-sidebar-accent-foreground"
                     )}
                   >
                     {isActive && (
-                      <span className="absolute top-1/2 left-0 h-5 w-1 -translate-y-1/2 rounded-r-full bg-sidebar-primary" />
+                      <span className="absolute top-1/2 left-0.5 h-6 w-1 -translate-y-1/2 rounded-full bg-sidebar-primary" />
                     )}
                     <Icon
                       className={cn(
