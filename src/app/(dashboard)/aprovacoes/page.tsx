@@ -46,10 +46,11 @@ export default async function AprovacoesPage() {
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            Solicitações e Aprovações
+            Solicitações
           </h1>
           <p className="text-sm text-muted-foreground">
-            Solicitações de colaboradores aguardando ou já revisadas.
+            Registre novas solicitações e acompanhe o histórico e o status de
+            cada uma. Aprovações são feitas na Visão Geral.
           </p>
         </div>
         <NovaSolicitacaoDialog funcionarios={funcionariosDTO} />
@@ -57,7 +58,7 @@ export default async function AprovacoesPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Solicitações</CardTitle>
+          <CardTitle>Histórico de solicitações</CardTitle>
         </CardHeader>
         <CardContent>
           <SolicitacoesTable solicitacoes={solicitacoesDTO} />

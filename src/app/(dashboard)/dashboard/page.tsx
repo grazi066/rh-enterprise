@@ -6,36 +6,46 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card"
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import { StatusBadge } from "@/components/status-badge"
-import { employees } from "@/lib/mock-data"
 import { prisma } from "@/lib/prisma"
 import { reconcileAllFuncionarioStatusFerias } from "@/lib/sync-funcionario-ferias-status"
-import { STATUS_SOLICITACAO_TO_APPROVAL_STATUS, TIPO_SOLICITACAO_LABEL } from "@/lib/status-labels"
+import { STATUS_SOLICITACAO_TO_APPROVAL_STATUS } from "@/lib/status-labels"
+import { SolicitacoesPendentesTable } from "./solicitacoes-pendentes-table"
+import type { SolicitacaoDTO } from "@/app/(dashboard)/aprovacoes/types"
 
 export default async function DashboardPage() {
-  // "Colaboradores ativos", "Em férias" e "Aprovações pendentes" já vêm do
-  // Prisma; "Departamentos" ainda é mock-data (não há um cadastro de
-  // departamentos separado do texto livre em Cargo.departamento).
   await reconcileAllFuncionarioStatusFerias()
-  const [colaboradoresAtivos, colaboradoresEmFerias, aprovacoesPendentes, solicitacoesRecentes] =
-    await Promise.all([
-      prisma.funcionario.count({ where: { status: "ATIVO" } }),
-      prisma.funcionario.count({ where: { status: "FERIAS" } }),
-      prisma.solicitacao.count({ where: { status: "PENDENTE" } }),
-      prisma.solicitacao.findMany({
-        orderBy: { createdAt: "desc" },
-        take: 5,
-        include: { funcionario: { select: { nome: true } } },
-      }),
-    ])
+  const [
+    colaboradoresAtivos,
+    colaboradoresEmFerias,
+    departamentosDistintos,
+    solicitacoesPendentes,
+  ] = await Promise.all([
+    prisma.funcionario.count({ where: { status: "ATIVO" } }),
+    prisma.funcionario.count({ where: { status: "FERIAS" } }),
+    prisma.cargo.findMany({
+      distinct: ["departamento"],
+      select: { departamento: true },
+    }),
+    prisma.solicitacao.findMany({
+      where: { status: "PENDENTE" },
+      orderBy: { createdAt: "asc" },
+      include: { funcionario: { select: { id: true, nome: true } } },
+    }),
+  ])
+
+  const solicitacoesPendentesDTO: SolicitacaoDTO[] = solicitacoesPendentes.map(
+    (solicitacao) => ({
+      id: solicitacao.id,
+      tipo: solicitacao.tipo,
+      status: STATUS_SOLICITACAO_TO_APPROVAL_STATUS[solicitacao.status],
+      justificativa: solicitacao.justificativa,
+      createdAt: solicitacao.createdAt.toISOString(),
+      funcionario: {
+        id: solicitacao.funcionario.id,
+        nome: solicitacao.funcionario.nome,
+      },
+    })
+  )
 
   const kpis = [
     {
@@ -50,12 +60,12 @@ export default async function DashboardPage() {
     },
     {
       label: "Aprovações pendentes",
-      value: aprovacoesPendentes,
+      value: solicitacoesPendentesDTO.length,
       icon: ClipboardCheck,
     },
     {
       label: "Departamentos",
-      value: new Set(employees.map((e) => e.department)).size,
+      value: departamentosDistintos.length,
       icon: Briefcase,
     },
   ]
@@ -67,7 +77,7 @@ export default async function DashboardPage() {
           Visão Geral
         </h1>
         <p className="text-sm text-muted-foreground">
-          Resumo do quadro de colaboradores e solicitações recentes.
+          Resumo do quadro de colaboradores e solicitações pendentes.
         </p>
       </div>
 
@@ -91,48 +101,10 @@ export default async function DashboardPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Solicitações recentes</CardTitle>
+          <CardTitle>Solicitações Pendentes</CardTitle>
         </CardHeader>
         <CardContent>
-          <Table>
-            <TableHeader>
-              <TableRow>
-                <TableHead>Colaborador</TableHead>
-                <TableHead>Tipo</TableHead>
-                <TableHead>Data</TableHead>
-                <TableHead className="text-right">Status</TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {solicitacoesRecentes.length === 0 ? (
-                <TableRow>
-                  <TableCell
-                    colSpan={4}
-                    className="h-24 text-center text-sm text-muted-foreground"
-                  >
-                    Nenhuma solicitação registrada ainda.
-                  </TableCell>
-                </TableRow>
-              ) : (
-                solicitacoesRecentes.map((solicitacao) => (
-                  <TableRow key={solicitacao.id}>
-                    <TableCell className="font-medium">
-                      {solicitacao.funcionario.nome}
-                    </TableCell>
-                    <TableCell>{TIPO_SOLICITACAO_LABEL[solicitacao.tipo]}</TableCell>
-                    <TableCell className="text-muted-foreground">
-                      {solicitacao.createdAt.toLocaleDateString("pt-BR")}
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <StatusBadge
-                        status={STATUS_SOLICITACAO_TO_APPROVAL_STATUS[solicitacao.status]}
-                      />
-                    </TableCell>
-                  </TableRow>
-                ))
-              )}
-            </TableBody>
-          </Table>
+          <SolicitacoesPendentesTable solicitacoes={solicitacoesPendentesDTO} />
         </CardContent>
       </Card>
     </div>

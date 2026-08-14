@@ -66,7 +66,7 @@ export function NovaSolicitacaoDialog({ funcionarios }: NovaSolicitacaoDialogPro
           <DialogHeader>
             <DialogTitle>Nova solicitação</DialogTitle>
             <DialogDescription>
-              Registre uma solicitação para revisão em Aprovações.
+              Registre uma solicitação para revisão na Visão Geral.
             </DialogDescription>
           </DialogHeader>
 

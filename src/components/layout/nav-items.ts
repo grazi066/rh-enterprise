@@ -30,7 +30,7 @@ export const navGroups: NavGroup[] = [
       { title: "Colaboradores", href: "/colaboradores", icon: Users },
       { title: "Férias e Ausências", href: "/ferias", icon: CalendarClock },
       { title: "Folha de Pagamento", href: "/folha", icon: Banknote },
-      { title: "Solicitações e Aprovações", href: "/aprovacoes", icon: ClipboardCheck },
+      { title: "Solicitações", href: "/aprovacoes", icon: ClipboardCheck },
     ],
   },
   {

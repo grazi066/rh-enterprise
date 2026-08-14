@@ -6,6 +6,7 @@ import { revalidatePath } from "next/cache"
 // Server Actions revalidam esse conjunto fixo de rotas em vez de só a sua.
 export function revalidateAppPaths() {
   revalidatePath("/colaboradores")
+  revalidatePath("/cargos")
   revalidatePath("/folha")
   revalidatePath("/filtros")
   revalidatePath("/auditoria")
