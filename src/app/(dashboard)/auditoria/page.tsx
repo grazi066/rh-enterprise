@@ -1,14 +1,20 @@
 import { CalendarClock, ShieldCheck, UserRound } from "lucide-react"
 
 import { prisma } from "@/lib/prisma"
+import { inicioDoDiaEmBrasilia } from "@/lib/timezone"
 import { MetricCard } from "@/components/metric-card"
 import { AuditoriaClient } from "./auditoria-client"
 import type { AuditLogDTO } from "./types"
 
 export default async function AuditoriaPage() {
-  const logsRaw = await prisma.auditLog.findMany({
-    orderBy: { createdAt: "desc" },
-  })
+  const [logsRaw, registrosHoje] = await Promise.all([
+    prisma.auditLog.findMany({
+      orderBy: { createdAt: "desc" },
+    }),
+    prisma.auditLog.count({
+      where: { createdAt: { gte: inicioDoDiaEmBrasilia() } },
+    }),
+  ])
 
   const logs: AuditLogDTO[] = logsRaw.map((log) => ({
     id: log.id,
@@ -20,16 +26,6 @@ export default async function AuditoriaPage() {
     detalhes: log.detalhes,
     createdAt: log.createdAt.toISOString(),
   }))
-
-  const hoje = new Date()
-  const registrosHoje = logs.filter((log) => {
-    const data = new Date(log.createdAt)
-    return (
-      data.getFullYear() === hoje.getFullYear() &&
-      data.getMonth() === hoje.getMonth() &&
-      data.getDate() === hoje.getDate()
-    )
-  }).length
 
   const usuariosUnicos = new Set(
     logs.map((log) => log.usuarioNome).filter((nome): nome is string => !!nome)
