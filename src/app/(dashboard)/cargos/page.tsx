@@ -1,7 +1,8 @@
-import { Building2, Users } from "lucide-react"
+import { Briefcase, Building2, Users } from "lucide-react"
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
+import { MetricCard } from "@/components/metric-card"
 import { prisma } from "@/lib/prisma"
 import { CargoCard } from "./cargo-card"
 import { CargoFormDialog } from "./cargo-form-dialog"
@@ -75,6 +76,25 @@ export default async function CargosPage() {
           </p>
         </div>
         <CargoFormDialog mode="create" departamentosExistentes={departamentos} />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-3">
+        <MetricCard
+          label="Total de Cargos"
+          value={cargosDTO.length.toString()}
+          icon={Briefcase}
+          highlight
+        />
+        <MetricCard
+          label="Departamentos"
+          value={departamentos.length.toString()}
+          icon={Building2}
+        />
+        <MetricCard
+          label="Colaboradores Vinculados"
+          value={funcionarios.length.toString()}
+          icon={Users}
+        />
       </div>
 
       {grupos.length === 0 ? (

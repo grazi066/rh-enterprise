@@ -128,26 +128,23 @@ export default async function FolhaPage(props: PageProps<"/folha">) {
               label="Total Bruto"
               value={currencyFormatter.format(totalBruto)}
               icon={Wallet}
-              colorClassName="bg-primary/10 text-primary"
             />
             <MetricCard
               label="Total de Descontos"
               value={currencyFormatter.format(totalDescontos)}
               icon={MinusCircle}
-              colorClassName="bg-destructive/10 text-destructive"
               hint="Estimativa ilustrativa (11%)"
             />
             <MetricCard
               label="Total Líquido"
               value={currencyFormatter.format(totalLiquido)}
               icon={CircleDollarSign}
-              colorClassName="bg-success/10 text-success"
+              highlight
             />
             <MetricCard
               label="% Paga no Mês"
               value={`${percentualPago}%`}
               icon={PiggyBank}
-              colorClassName="bg-info/10 text-info"
               hint={`${currencyFormatter.format(totalLiquidoPago)} já pagos`}
             />
           </div>

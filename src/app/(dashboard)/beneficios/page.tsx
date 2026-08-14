@@ -1,5 +1,9 @@
+import { HeartHandshake, Wallet } from "lucide-react"
+
 import { Card, CardContent } from "@/components/ui/card"
+import { MetricCard } from "@/components/metric-card"
 import { prisma } from "@/lib/prisma"
+import { currencyFormatter } from "@/lib/format"
 import { BeneficioCard } from "./beneficio-card"
 import { BeneficioFormDialog } from "./beneficio-form-dialog"
 
@@ -14,6 +18,11 @@ export default async function BeneficiosPage() {
     tipo: beneficio.tipo,
     valorPadrao: beneficio.valorPadrao.toNumber(),
   }))
+
+  const valorTotalPadrao = beneficiosDTO.reduce(
+    (total, beneficio) => total + beneficio.valorPadrao,
+    0
+  )
 
   return (
     <div className="space-y-6">
@@ -31,6 +40,21 @@ export default async function BeneficiosPage() {
           </p>
         </div>
         <BeneficioFormDialog mode="create" />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
+        <MetricCard
+          label="Total de Benefícios"
+          value={beneficiosDTO.length.toString()}
+          icon={HeartHandshake}
+          highlight
+        />
+        <MetricCard
+          label="Soma dos Valores Padrão"
+          value={currencyFormatter.format(valorTotalPadrao)}
+          icon={Wallet}
+          hint="Antes de customizações por colaborador"
+        />
       </div>
 
       {beneficiosDTO.length === 0 ? (

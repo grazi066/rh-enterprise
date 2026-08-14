@@ -6,13 +6,25 @@
 
 /*
  * Design tokens — RH Enterprise
- * Primary accent: Navy/Slate escuro (#0F172A), sóbrio e corporativo. Neutral
- * surfaces: Slate. Status badges: green/amber/blue. See CLAUDE.md "Design
- * System" section before adding new colors.
+ * Accent: Teal/petróleo (#0F766E), sóbrio, no lugar do indigo/violeta
+ * genérico. Neutral surfaces: Slate (nunca cinza puro). Status badges:
+ * green/amber/blue com borda sutil. See CLAUDE.md "Design System" section
+ * before adding new colors.
  */
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
+
+  /* Escala teal explícita — para casos em que o token semântico --primary
+     não serve (ex.: um tom específico como accent-400 no texto ativo da
+     sidebar escura, ou accent-200 na borda de um badge). */
+  --color-accent-50: var(--accent-50);
+  --color-accent-100: var(--accent-100);
+  --color-accent-200: var(--accent-200);
+  --color-accent-400: var(--accent-400);
+  --color-accent-500: var(--accent-500);
+  --color-accent-600: var(--accent-600);
+  --color-accent-700: var(--accent-700);
 
   /* Plus Jakarta Sans is injected at runtime via next/font on <html>; @theme inline
      resolves at parse time, so we reference the literal font stack instead of
@@ -85,9 +97,18 @@
   --popover: oklch(1 0 0);
   --popover-foreground: oklch(0.208 0.042 265.755);
 
-  /* Brand: Navy/Slate escuro (#0F172A ≈ slate-900) — sóbrio e corporativo,
-     no lugar do Indigo vívido usado antes */
-  --primary: oklch(0.208 0.042 265.755); /* slate-900, #0F172A */
+  /* Teal scale (Tailwind teal-{50,100,200,400,500,600,700}) — base para
+     --primary/--ring/--accent e para as utilities accent-{n} literais. */
+  --accent-50: oklch(0.984 0.014 180.72);
+  --accent-100: oklch(0.953 0.051 180.801);
+  --accent-200: oklch(0.91 0.096 180.426);
+  --accent-400: oklch(0.777 0.152 181.912);
+  --accent-500: oklch(0.704 0.14 182.503);
+  --accent-600: oklch(0.6 0.118 184.704);
+  --accent-700: oklch(0.511 0.096 186.391); /* ≈ #0F766E */
+
+  /* Brand: Teal/petróleo — sóbrio, substitui o indigo/violeta genérico */
+  --primary: oklch(0.511 0.096 186.391); /* teal-700, ≈ #0F766E */
   --primary-foreground: oklch(0.984 0.003 247.858); /* slate-50 */
 
   --secondary: oklch(0.968 0.007 247.896); /* slate-100 */
@@ -96,35 +117,35 @@
   --muted: oklch(0.968 0.007 247.896); /* slate-100 */
   --muted-foreground: oklch(0.554 0.046 257.417); /* slate-500 */
 
-  /* Accent: Violet, distinct from primary Indigo, for hover/active surfaces */
-  --accent: oklch(0.943 0.029 294.588); /* violet-100 */
-  --accent-foreground: oklch(0.38 0.189 293.745); /* violet-900 */
+  /* Accent: tint teal claro para superfícies de hover (dropdown/select/command) */
+  --accent: oklch(0.953 0.051 180.801); /* teal-100 */
+  --accent-foreground: oklch(0.386 0.063 188.416); /* teal-900 */
 
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
 
   --border: oklch(0.929 0.013 255.508); /* slate-200 */
   --input: oklch(0.929 0.013 255.508); /* slate-200 */
-  --ring: oklch(0.208 0.042 265.755); /* matches primary navy */
+  --ring: oklch(0.6 0.118 184.704); /* teal-600 */
 
-  --chart-1: oklch(0.511 0.262 276.966); /* indigo-600 */
-  --chart-2: oklch(0.541 0.281 293.009); /* violet-600 */
+  --chart-1: oklch(0.511 0.096 186.391); /* teal-700 */
+  --chart-2: oklch(0.6 0.118 184.704); /* teal-600 */
   --chart-3: oklch(0.546 0.245 262.881); /* blue-600 */
   --chart-4: oklch(0.627 0.194 149.214); /* green-600 */
   --chart-5: oklch(0.666 0.179 58.318); /* amber-600 */
 
-  --radius: 0.625rem;
+  --radius: 0.5rem; /* 8px — rounded-lg em toda a aplicação, nada de 2xl/3xl */
 
-  /* Sidebar: deep Slate shell with Indigo accent — enterprise "dark rail" look
-     even in light mode, matching many corporate admin consoles */
+  /* Sidebar: deep Slate shell com acento teal — "dark rail" sóbrio, sem
+     gradiente e sem indigo */
   --sidebar: oklch(0.208 0.042 265.755); /* slate-900 */
   --sidebar-foreground: oklch(0.968 0.007 247.896); /* slate-100 */
-  --sidebar-primary: oklch(0.585 0.233 277.117); /* indigo-500 */
+  --sidebar-primary: oklch(0.704 0.14 182.503); /* teal-500 — visível sobre fundo escuro */
   --sidebar-primary-foreground: oklch(1 0 0);
   --sidebar-accent: oklch(0.279 0.041 260.031); /* slate-800 */
   --sidebar-accent-foreground: oklch(0.968 0.007 247.896);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.585 0.233 277.117);
+  --sidebar-ring: oklch(0.704 0.14 182.503); /* teal-500 */
 
   /* Status badges */
   --success: oklch(0.627 0.194 149.214); /* green-600 — Ativo / Aprovado */
@@ -145,7 +166,15 @@
   --popover: oklch(0.208 0.042 265.755);
   --popover-foreground: oklch(0.968 0.007 247.896);
 
-  --primary: oklch(0.968 0.007 247.896); /* slate-100 — light navy inverts for contrast on dark surfaces */
+  --accent-50: oklch(0.257 0.05 188.416);
+  --accent-100: oklch(0.332 0.062 188.303);
+  --accent-200: oklch(0.386 0.063 188.416);
+  --accent-400: oklch(0.777 0.152 181.912);
+  --accent-500: oklch(0.777 0.152 181.912);
+  --accent-600: oklch(0.704 0.14 182.503);
+  --accent-700: oklch(0.6 0.118 184.704);
+
+  --primary: oklch(0.777 0.152 181.912); /* teal-400 — bright, contrasts on dark surfaces */
   --primary-foreground: oklch(0.208 0.042 265.755); /* slate-900 */
 
   --secondary: oklch(0.279 0.041 260.031); /* slate-800 */
@@ -154,30 +183,30 @@
   --muted: oklch(0.279 0.041 260.031); /* slate-800 */
   --muted-foreground: oklch(0.704 0.04 256.788); /* slate-400 */
 
-  --accent: oklch(0.38 0.189 293.745); /* violet-900 */
-  --accent-foreground: oklch(0.894 0.057 293.283); /* violet-200 */
+  --accent: oklch(0.332 0.062 188.303); /* teal-900-ish tint */
+  --accent-foreground: oklch(0.777 0.152 181.912); /* teal-400 */
 
   --destructive: oklch(0.704 0.191 22.216);
   --destructive-foreground: oklch(0.129 0.042 264.695);
 
   --border: oklch(1 0 0 / 10%);
   --input: oklch(1 0 0 / 15%);
-  --ring: oklch(0.968 0.007 247.896); /* matches primary slate-100 */
+  --ring: oklch(0.777 0.152 181.912); /* matches primary teal-400 */
 
-  --chart-1: oklch(0.673 0.182 276.935); /* indigo-400 */
-  --chart-2: oklch(0.702 0.183 293.541); /* violet-400 */
+  --chart-1: oklch(0.777 0.152 181.912); /* teal-400 */
+  --chart-2: oklch(0.704 0.14 182.503); /* teal-500 */
   --chart-3: oklch(0.623 0.214 259.815); /* blue-500 */
   --chart-4: oklch(0.723 0.219 149.579); /* green-500 */
   --chart-5: oklch(0.769 0.188 70.08); /* amber-500 */
 
   --sidebar: oklch(0.1 0.03 264.695); /* near-black slate, deeper than page bg */
   --sidebar-foreground: oklch(0.968 0.007 247.896);
-  --sidebar-primary: oklch(0.673 0.182 276.935);
+  --sidebar-primary: oklch(0.777 0.152 181.912); /* teal-400 */
   --sidebar-primary-foreground: oklch(0.129 0.042 264.695);
   --sidebar-accent: oklch(0.279 0.041 260.031);
   --sidebar-accent-foreground: oklch(0.968 0.007 247.896);
   --sidebar-border: oklch(1 0 0 / 8%);
-  --sidebar-ring: oklch(0.673 0.182 276.935);
+  --sidebar-ring: oklch(0.777 0.152 181.912);
 
   --success: oklch(0.723 0.219 149.579); /* green-500 */
   --success-foreground: oklch(0.129 0.042 264.695);

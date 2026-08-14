@@ -27,7 +27,7 @@ export function UserMenu() {
           </p>
         </div>
         <Avatar className="size-8 ring-2 ring-primary/10">
-          <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+          <AvatarFallback className="bg-slate-700 text-xs text-white dark:bg-slate-600">
             {currentUser.initials}
           </AvatarFallback>
         </Avatar>
@@ -37,7 +37,7 @@ export function UserMenu() {
         <DropdownMenuGroup>
           <DropdownMenuLabel className="flex items-center gap-2.5 font-normal">
             <Avatar className="size-9 ring-2 ring-primary/10">
-              <AvatarFallback className="bg-primary text-primary-foreground text-xs">
+              <AvatarFallback className="bg-slate-700 text-xs text-white dark:bg-slate-600">
                 {currentUser.initials}
               </AvatarFallback>
             </Avatar>

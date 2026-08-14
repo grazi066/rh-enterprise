@@ -108,26 +108,23 @@ export default async function FiltrosPage() {
           label="Total de Colaboradores"
           value={totalColaboradores.toString()}
           icon={Users}
-          colorClassName="bg-primary/10 text-primary"
         />
         <MetricCard
           label="Folha Salarial Total Mensal"
           value={currencyFormatter.format(folhaSalarialTotal)}
           icon={Wallet}
-          colorClassName="bg-accent text-accent-foreground"
           hint="Exclui colaboradores desligados"
+          highlight
         />
         <MetricCard
           label="Em Férias no Mês Atual"
           value={feriasNoMes.length.toString()}
           icon={CalendarClock}
-          colorClassName="bg-warning/10 text-warning"
         />
         <MetricCard
           label="Custo Total de Benefícios"
           value={currencyFormatter.format(custoTotalBeneficios)}
           icon={HeartHandshake}
-          colorClassName="bg-info/10 text-info"
           hint="Soma de todas as adesões ativas"
         />
       </div>

@@ -7,7 +7,7 @@ import { MobileSidebar } from "@/components/layout/mobile-sidebar"
 
 export function Topbar() {
   return (
-    <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-card px-4 sm:gap-4 sm:px-6">
+    <header className="flex h-16 shrink-0 items-center gap-2 border-b border-border bg-card/80 px-4 backdrop-blur-sm sm:gap-4 sm:px-6">
       <MobileSidebar />
 
       <div className="relative min-w-0 flex-1 sm:max-w-sm">

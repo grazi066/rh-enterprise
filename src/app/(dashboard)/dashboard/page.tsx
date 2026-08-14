@@ -48,29 +48,22 @@ export default async function DashboardPage() {
       label: "Colaboradores ativos",
       value: colaboradoresAtivos,
       icon: Users,
-      colorClassName: "bg-success/10 text-success",
-      accentClassName: "border-l-success",
     },
     {
       label: "Em férias",
       value: colaboradoresEmFerias,
       icon: CalendarClock,
-      colorClassName: "bg-warning/10 text-warning",
-      accentClassName: "border-l-warning",
     },
     {
       label: "Aprovações pendentes",
       value: solicitacoesPendentesDTO.length,
       icon: ClipboardCheck,
-      colorClassName: "bg-info/10 text-info",
-      accentClassName: "border-l-info",
+      highlight: true,
     },
     {
       label: "Departamentos",
       value: departamentosDistintos.length,
       icon: Briefcase,
-      colorClassName: "bg-primary/10 text-primary",
-      accentClassName: "border-l-primary",
     },
   ]
 
@@ -92,8 +85,7 @@ export default async function DashboardPage() {
             label={kpi.label}
             value={kpi.value.toString()}
             icon={kpi.icon}
-            colorClassName={kpi.colorClassName}
-            accentClassName={kpi.accentClassName}
+            highlight={kpi.highlight}
           />
         ))}
       </div>
