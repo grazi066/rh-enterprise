@@ -1,6 +1,7 @@
 import type { LucideIcon } from "lucide-react"
 
 import { Card, CardContent } from "@/components/ui/card"
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { cn } from "@/lib/utils"
 
 interface MetricCardProps {
@@ -41,9 +42,19 @@ export function MetricCard({
           <p className="text-xs font-medium tracking-wide text-muted-foreground uppercase">
             {label}
           </p>
-          <p className="truncate text-2xl font-semibold tracking-tight text-foreground">
-            {value}
-          </p>
+          {/* Valores financeiros grandes (ex.: "R$ 109.850,00") podem não
+              caber mesmo com o tamanho responsivo — o Tooltip garante que o
+              valor completo continue acessível mesmo truncado. */}
+          <Tooltip>
+            <TooltipTrigger
+              render={
+                <p className="truncate text-xl font-bold tracking-tight text-foreground md:text-2xl lg:text-3xl">
+                  {value}
+                </p>
+              }
+            />
+            <TooltipContent>{value}</TooltipContent>
+          </Tooltip>
           {hint && (
             <p className="truncate text-xs text-muted-foreground">{hint}</p>
           )}

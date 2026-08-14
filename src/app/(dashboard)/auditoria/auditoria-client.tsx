@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Info } from "lucide-react"
 
 import { Input } from "@/components/ui/input"
 import {
@@ -22,6 +21,7 @@ import {
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
 import { ColoredAvatar } from "@/components/colored-avatar"
 import { AcaoAuditoriaBadge, acaoAuditoriaLabel } from "@/components/audit-acao-badge"
+import { AuditLogDetailDialog } from "./audit-log-detail-dialog"
 import { formatAuditDetails, getAuditJustificativa } from "./format-audit-details"
 import type { AuditLogDTO } from "./types"
 
@@ -87,12 +87,13 @@ export function AuditoriaClient({ logs }: { logs: AuditLogDTO[] }) {
               <TableHead>Ação</TableHead>
               <TableHead>Entidade</TableHead>
               <TableHead>Detalhes</TableHead>
+              <TableHead className="w-10" />
             </TableRow>
           </TableHeader>
           <TableBody>
             {logsFiltrados.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="h-24 text-center text-sm text-muted-foreground">
+                <TableCell colSpan={6} className="h-24 text-center text-sm text-muted-foreground">
                   Nenhum registro corresponde aos filtros selecionados.
                 </TableCell>
               </TableRow>
@@ -128,26 +129,30 @@ export function AuditoriaClient({ logs }: { logs: AuditLogDTO[] }) {
                         return <span className="text-muted-foreground">—</span>
                       }
 
-                      if (!justificativa) {
-                        return <span className="block truncate">{resumo}</span>
-                      }
-
                       return (
                         <Tooltip>
                           <TooltipTrigger
-                            render={
-                              <span className="flex items-center gap-1.5">
-                                <span className="truncate">{resumo}</span>
-                                <Info className="size-3.5 shrink-0 text-muted-foreground" />
-                              </span>
-                            }
+                            render={<span className="block truncate">{resumo}</span>}
                           />
                           <TooltipContent className="max-w-sm whitespace-pre-wrap text-xs">
-                            <span className="font-medium">Justificativa:</span> {justificativa}
+                            {justificativa ? (
+                              <>
+                                <p>{resumo}</p>
+                                <p className="mt-1 opacity-80">
+                                  <span className="font-medium">Justificativa:</span>{" "}
+                                  {justificativa}
+                                </p>
+                              </>
+                            ) : (
+                              resumo
+                            )}
                           </TooltipContent>
                         </Tooltip>
                       )
                     })()}
+                  </TableCell>
+                  <TableCell>
+                    <AuditLogDetailDialog log={log} />
                   </TableCell>
                 </TableRow>
               ))
