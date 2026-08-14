@@ -108,8 +108,8 @@ export default async function FiltrosPage() {
           label="Total de Colaboradores"
           value={totalColaboradores.toString()}
           icon={Users}
-          className="border-slate-300 bg-slate-100/70"
-          valueClassName="text-slate-900"
+          className="border-accent-200/60 bg-accent-50/60"
+          valueClassName="text-accent-700"
         />
         <MetricCard
           label="Folha Salarial Total Mensal"

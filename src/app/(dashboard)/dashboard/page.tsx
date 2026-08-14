@@ -48,11 +48,13 @@ export default async function DashboardPage() {
       label: "Colaboradores ativos",
       value: colaboradoresAtivos,
       icon: Users,
+      highlight: true,
     },
     {
       label: "Em férias",
       value: colaboradoresEmFerias,
       icon: CalendarClock,
+      highlight: true,
     },
     {
       label: "Aprovações pendentes",
@@ -64,6 +66,7 @@ export default async function DashboardPage() {
       label: "Departamentos",
       value: departamentosDistintos.length,
       icon: Briefcase,
+      highlight: true,
     },
   ]
 

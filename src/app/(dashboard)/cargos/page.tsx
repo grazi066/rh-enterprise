@@ -89,11 +89,13 @@ export default async function CargosPage() {
           label="Departamentos"
           value={departamentos.length.toString()}
           icon={Building2}
+          highlight
         />
         <MetricCard
           label="Colaboradores Vinculados"
           value={funcionarios.length.toString()}
           icon={Users}
+          highlight
         />
       </div>
 

@@ -55,11 +55,13 @@ export default async function AuditoriaPage() {
           label="Registros Hoje"
           value={registrosHoje.toString()}
           icon={CalendarClock}
+          highlight
         />
         <MetricCard
           label="Usuários Envolvidos"
           value={usuariosUnicos.toString()}
           icon={UserRound}
+          highlight
         />
       </div>
 
