@@ -1,19 +1,16 @@
-import { Building2 } from "lucide-react"
+import { Building2, Users } from "lucide-react"
 
+import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { prisma } from "@/lib/prisma"
 import { CargoCard } from "./cargo-card"
 import { CargoFormDialog } from "./cargo-form-dialog"
-import {
-  DepartamentoColaboradoresSheet,
-  type DepartamentoColaboradorDTO,
-} from "./departamento-colaboradores-sheet"
+import { ColaboradoresSheet, type ColaboradorListItem } from "./colaboradores-sheet"
 
 export default async function CargosPage() {
   const [cargos, funcionarios] = await Promise.all([
     prisma.cargo.findMany({
       orderBy: [{ departamento: "asc" }, { nome: "asc" }],
-      include: { _count: { select: { funcionarios: true } } },
     }),
     prisma.funcionario.findMany({
       orderBy: { nome: "asc" },
@@ -26,25 +23,36 @@ export default async function CargosPage() {
     nome: cargo.nome,
     departamento: cargo.departamento,
     salarioBase: cargo.salarioBase.toNumber(),
-    funcionariosCount: cargo._count.funcionarios,
   }))
 
   const departamentos = Array.from(
     new Set(cargosDTO.map((cargo) => cargo.departamento))
   ).sort((a, b) => a.localeCompare(b, "pt-BR"))
 
-  const colaboradoresPorDepartamento = new Map<string, DepartamentoColaboradorDTO[]>()
+  // Fonte única de verdade para as listas de colaboradores exibidas nos
+  // Sheets — tanto por departamento quanto por cargo — em vez de um mero
+  // contador desconectado dos dados reais.
+  const colaboradoresPorDepartamento = new Map<string, ColaboradorListItem[]>()
+  const colaboradoresPorCargo = new Map<string, ColaboradorListItem[]>()
   for (const funcionario of funcionarios) {
-    const departamento = funcionario.cargo.departamento
-    const lista = colaboradoresPorDepartamento.get(departamento) ?? []
-    lista.push({
+    const item: ColaboradorListItem = {
       id: funcionario.id,
       nome: funcionario.nome,
       cargoNome: funcionario.cargo.nome,
       status: funcionario.status,
       salarioAtual: funcionario.salarioAtual.toNumber(),
-    })
-    colaboradoresPorDepartamento.set(departamento, lista)
+    }
+
+    const departamento = funcionario.cargo.departamento
+    colaboradoresPorDepartamento.set(departamento, [
+      ...(colaboradoresPorDepartamento.get(departamento) ?? []),
+      item,
+    ])
+
+    colaboradoresPorCargo.set(funcionario.cargoId, [
+      ...(colaboradoresPorCargo.get(funcionario.cargoId) ?? []),
+      item,
+    ])
   }
 
   const grupos = departamentos.map((departamento) => ({
@@ -91,9 +99,16 @@ export default async function CargosPage() {
                   ({grupo.cargos.length})
                 </span>
                 <div className="ml-auto">
-                  <DepartamentoColaboradoresSheet
-                    departamento={grupo.departamento}
+                  <ColaboradoresSheet
+                    title={grupo.departamento}
+                    emptyMessage="Nenhum colaborador vinculado a este departamento."
                     colaboradores={grupo.colaboradores}
+                    trigger={
+                      <Button variant="outline" size="sm" className="gap-1.5">
+                        <Users className="size-3.5" />
+                        Ver colaboradores
+                      </Button>
+                    }
                   />
                 </div>
               </div>
@@ -103,6 +118,7 @@ export default async function CargosPage() {
                     key={cargo.id}
                     cargo={cargo}
                     departamentosExistentes={departamentos}
+                    colaboradores={colaboradoresPorCargo.get(cargo.id) ?? []}
                   />
                 ))}
               </div>

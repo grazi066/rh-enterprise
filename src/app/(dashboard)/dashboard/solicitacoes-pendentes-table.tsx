@@ -1,7 +1,6 @@
 "use client"
 
 import { useState, useTransition } from "react"
-import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import {
@@ -14,6 +13,7 @@ import {
 } from "@/components/ui/table"
 import { Button } from "@/components/ui/button"
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip"
+import { StatusBadge, type ApprovalStatus } from "@/components/status-badge"
 import { TIPO_SOLICITACAO_LABEL } from "@/lib/status-labels"
 import {
   aprovarSolicitacao,
@@ -28,15 +28,20 @@ export function SolicitacoesPendentesTable({
 }: {
   solicitacoes: SolicitacaoDTO[]
 }) {
-  const router = useRouter()
-  const [isPending, startTransition] = useTransition()
-  const [pending, setPending] = useState<{
-    id: string
-    acao: "aprovar" | "rejeitar"
-  } | null>(null)
+  const [, startTransition] = useTransition()
+  // Sobrepõe o status vindo do servidor assim que o usuário clica: os
+  // botões viram badge na mesma renderização, antes mesmo da Server Action
+  // responder. Não usamos router.refresh() depois — a query do dashboard só
+  // traz solicitações PENDENTE, então um refresh removeria a linha em vez de
+  // manter a badge visível.
+  const [statusOverrides, setStatusOverrides] = useState<
+    Record<string, ApprovalStatus>
+  >({})
 
   function handleRevisar(solicitacao: SolicitacaoDTO, acao: "aprovar" | "rejeitar") {
-    setPending({ id: solicitacao.id, acao })
+    const statusOtimista: ApprovalStatus = acao === "aprovar" ? "aprovado" : "reprovado"
+    setStatusOverrides((prev) => ({ ...prev, [solicitacao.id]: statusOtimista }))
+
     startTransition(async () => {
       const result =
         acao === "aprovar"
@@ -45,11 +50,14 @@ export function SolicitacoesPendentesTable({
 
       if (result.success) {
         toast.success(result.message)
-        router.refresh()
       } else {
         toast.error(result.message)
+        setStatusOverrides((prev) => {
+          const next = { ...prev }
+          delete next[solicitacao.id]
+          return next
+        })
       }
-      setPending(null)
     })
   }
 
@@ -76,7 +84,7 @@ export function SolicitacoesPendentesTable({
           </TableRow>
         ) : (
           solicitacoes.map((solicitacao) => {
-            const isRowPending = isPending && pending?.id === solicitacao.id
+            const status = statusOverrides[solicitacao.id] ?? solicitacao.status
 
             return (
               <TableRow key={solicitacao.id}>
@@ -106,27 +114,27 @@ export function SolicitacoesPendentesTable({
                   {dateFormatter.format(new Date(solicitacao.createdAt))}
                 </TableCell>
                 <TableCell className="text-right">
-                  <div className="flex justify-end gap-2">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      disabled={isRowPending}
-                      onClick={() => handleRevisar(solicitacao, "rejeitar")}
-                    >
-                      {isRowPending && pending?.acao === "rejeitar"
-                        ? "Rejeitando..."
-                        : "Rejeitar"}
-                    </Button>
-                    <Button
-                      size="sm"
-                      disabled={isRowPending}
-                      onClick={() => handleRevisar(solicitacao, "aprovar")}
-                    >
-                      {isRowPending && pending?.acao === "aprovar"
-                        ? "Aprovando..."
-                        : "Aprovar"}
-                    </Button>
-                  </div>
+                  {status === "pendente" ? (
+                    <div className="flex justify-end gap-2">
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => handleRevisar(solicitacao, "rejeitar")}
+                      >
+                        Rejeitar
+                      </Button>
+                      <Button
+                        size="sm"
+                        onClick={() => handleRevisar(solicitacao, "aprovar")}
+                      >
+                        Aprovar
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex justify-end">
+                      <StatusBadge status={status} />
+                    </div>
+                  )}
                 </TableCell>
               </TableRow>
             )

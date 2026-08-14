@@ -26,13 +26,15 @@ import {
 import { currencyFormatter } from "@/lib/format"
 import { deleteCargo } from "./actions"
 import { CargoFormDialog, type CargoDTO } from "./cargo-form-dialog"
+import { ColaboradoresSheet, type ColaboradorListItem } from "./colaboradores-sheet"
 
 interface CargoCardProps {
-  cargo: CargoDTO & { funcionariosCount: number }
+  cargo: CargoDTO
   departamentosExistentes: string[]
+  colaboradores: ColaboradorListItem[]
 }
 
-export function CargoCard({ cargo, departamentosExistentes }: CargoCardProps) {
+export function CargoCard({ cargo, departamentosExistentes, colaboradores }: CargoCardProps) {
   const router = useRouter()
   const [editOpen, setEditOpen] = useState(false)
   const [deleteOpen, setDeleteOpen] = useState(false)
@@ -89,10 +91,22 @@ export function CargoCard({ cargo, departamentosExistentes }: CargoCardProps) {
             </DropdownMenuContent>
           </DropdownMenu>
         </CardHeader>
-        <CardContent className="flex items-center gap-1.5 text-xs text-muted-foreground">
-          <Users className="size-3.5" />
-          {cargo.funcionariosCount}{" "}
-          {cargo.funcionariosCount === 1 ? "colaborador" : "colaboradores"}
+        <CardContent>
+          <ColaboradoresSheet
+            title={`${cargo.nome} · ${cargo.departamento}`}
+            emptyMessage="Nenhum colaborador vinculado a este cargo."
+            colaboradores={colaboradores}
+            trigger={
+              <button
+                type="button"
+                className="flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground hover:underline"
+              >
+                <Users className="size-3.5" />
+                {colaboradores.length}{" "}
+                {colaboradores.length === 1 ? "colaborador" : "colaboradores"}
+              </button>
+            }
+          />
         </CardContent>
       </Card>
 

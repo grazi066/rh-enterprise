@@ -1,9 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { Users } from "lucide-react"
+import { cloneElement, useState, type ReactElement } from "react"
 
-import { Button } from "@/components/ui/button"
 import {
   Sheet,
   SheetContent,
@@ -24,7 +22,7 @@ import { FuncionarioStatusBadge } from "@/components/funcionario-status-badge"
 import { currencyFormatter } from "@/lib/format"
 import type { StatusFuncionario } from "@/generated/prisma/enums"
 
-export interface DepartamentoColaboradorDTO {
+export interface ColaboradorListItem {
   id: string
   nome: string
   cargoNome: string
@@ -32,43 +30,40 @@ export interface DepartamentoColaboradorDTO {
   salarioAtual: number
 }
 
-interface DepartamentoColaboradoresSheetProps {
-  departamento: string
-  colaboradores: DepartamentoColaboradorDTO[]
+interface ColaboradoresSheetProps {
+  title: string
+  emptyMessage: string
+  colaboradores: ColaboradorListItem[]
+  trigger: ReactElement<{ onClick?: () => void }>
 }
 
-export function DepartamentoColaboradoresSheet({
-  departamento,
+// Sheet genérico reutilizado tanto na expansão por departamento quanto por
+// cargo — o trigger é controlado externamente (clonado com onClick) em vez
+// de usar SheetTrigger, seguindo o mesmo padrão de abertura manual do
+// MobileSidebar.
+export function ColaboradoresSheet({
+  title,
+  emptyMessage,
   colaboradores,
-}: DepartamentoColaboradoresSheetProps) {
+  trigger,
+}: ColaboradoresSheetProps) {
   const [open, setOpen] = useState(false)
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
-      <Button
-        variant="outline"
-        size="sm"
-        className="gap-1.5"
-        onClick={() => setOpen(true)}
-      >
-        <Users className="size-3.5" />
-        Ver colaboradores
-      </Button>
+      {cloneElement(trigger, { onClick: () => setOpen(true) })}
       <SheetContent className="w-full gap-0 sm:max-w-lg">
         <SheetHeader className="border-b pb-4">
-          <SheetTitle>{departamento}</SheetTitle>
+          <SheetTitle>{title}</SheetTitle>
           <SheetDescription>
             {colaboradores.length}{" "}
-            {colaboradores.length === 1 ? "colaborador" : "colaboradores"}{" "}
-            neste departamento.
+            {colaboradores.length === 1 ? "colaborador" : "colaboradores"}.
           </SheetDescription>
         </SheetHeader>
 
         <div className="flex-1 overflow-y-auto px-4 py-4">
           {colaboradores.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              Nenhum colaborador vinculado a este departamento.
-            </p>
+            <p className="text-sm text-muted-foreground">{emptyMessage}</p>
           ) : (
             <Table>
               <TableHeader>
