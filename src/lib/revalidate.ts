@@ -13,4 +13,8 @@ export function revalidateAppPaths() {
   revalidatePath("/ferias")
   revalidatePath("/aprovacoes")
   revalidatePath("/")
+  // "/" só faz redirect() para "/dashboard" — são entradas de cache
+  // separadas no Full Route Cache, então revalidar "/" não invalida o
+  // conteúdo (KPIs e Solicitações Pendentes) que de fato mora em "/dashboard".
+  revalidatePath("/dashboard")
 }
