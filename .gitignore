@@ -50,3 +50,16 @@ next-env.d.ts
 /src/generated/prisma
 
 .vercel
+# --- Agentes de IA / Claude Code ---
+# Configuracao, memoria e artefatos de agentes nunca devem ir para o repositorio.
+.claude/
+.agents/
+AGENTS.md
+**/AGENTS.md
+CLAUDE.md
+**/CLAUDE.md
+skills-lock.json
+**/skills-lock.json
+.cursor/
+.windsurf/
+.aider*
